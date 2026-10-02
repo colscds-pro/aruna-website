@@ -4,9 +4,7 @@ import { INITIAL_ARTICLES } from '../../data/initialArticles';
 import { AuthorsService } from './authorsService';
 import { CategoriesService } from './categoriesService';
 
-const LOCAL_ARTICLES_KEY = 'aruna_insights_articles_v3';
-
-// Listener system for reactive UI updates
+// Listener system for reactive UI updates across components
 type Listener = () => void;
 const listeners = new Set<Listener>();
 
@@ -36,23 +34,17 @@ export function slugifyTitle(text: string): string {
 
 export function estimateReadingTime(content: string): number {
   const wordsPerMinute = 200;
-  const words = content.trim().split(/\s+/).length;
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
 export const ArticlesService = {
   /**
-   * Get all published articles for public visitors
+   * Get all published articles for public visitors from public.articles
+   * Respects RLS: anonymous and authenticated users receive status='published' only
    */
   async getPublishedArticles(): Promise<Article[]> {
     if (!isSupabaseConfigured) {
-      try {
-        const raw = localStorage.getItem(LOCAL_ARTICLES_KEY);
-        if (raw) {
-          const list: Article[] = JSON.parse(raw);
-          return list.filter((a) => a.status === 'published');
-        }
-      } catch {}
       return INITIAL_ARTICLES.filter((a) => a.status === 'published');
     }
 
@@ -67,27 +59,28 @@ export const ArticlesService = {
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
+        console.error('Error fetching published articles from Supabase:', error.message);
         return INITIAL_ARTICLES.filter((a) => a.status === 'published');
       }
 
-      return data.map(this.mapDbArticleToModel);
-    } catch {
+      if (!data || data.length === 0) {
+        // Fallback to in-memory initial articles if table hasn't been seeded yet
+        return INITIAL_ARTICLES.filter((a) => a.status === 'published');
+      }
+
+      return data.map((row) => this.mapDbArticleToModel(row));
+    } catch (err) {
+      console.error('Exception fetching published articles:', err);
       return INITIAL_ARTICLES.filter((a) => a.status === 'published');
     }
   },
 
   /**
-   * Get all articles (draft + published) for Admin CMS
+   * Get all articles (draft + published) for Admin CMS from public.articles
    */
   async getAllArticles(): Promise<Article[]> {
     if (!isSupabaseConfigured) {
-      try {
-        const raw = localStorage.getItem(LOCAL_ARTICLES_KEY);
-        if (raw) {
-          return JSON.parse(raw);
-        }
-      } catch {}
       return INITIAL_ARTICLES;
     }
 
@@ -101,18 +94,24 @@ export const ArticlesService = {
         `)
         .order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
+        console.error('Error fetching articles for admin CMS from Supabase:', error.message);
         return INITIAL_ARTICLES;
       }
 
-      return data.map(this.mapDbArticleToModel);
-    } catch {
+      if (!data || data.length === 0) {
+        return INITIAL_ARTICLES;
+      }
+
+      return data.map((row) => this.mapDbArticleToModel(row));
+    } catch (err) {
+      console.error('Exception fetching all articles:', err);
       return INITIAL_ARTICLES;
     }
   },
 
   /**
-   * Get single article by slug
+   * Get single article by slug from public.articles
    */
   async getArticleBySlug(slug: string): Promise<Article | null> {
     if (!isSupabaseConfigured) {
@@ -138,12 +137,33 @@ export const ArticlesService = {
 
       return this.mapDbArticleToModel(data);
     } catch {
-      return null;
+      const all = await this.getAllArticles();
+      return all.find((a) => a.slug === slug) || null;
     }
   },
 
   /**
-   * Create new article in Supabase
+   * Get related articles for article modal
+   */
+  async getRelatedArticles(currentArticleId: string, category: string, limit = 2): Promise<Article[]> {
+    const published = await this.getPublishedArticles();
+    return published
+      .filter((a) => a.id !== currentArticleId && a.category === category)
+      .slice(0, limit);
+  },
+
+  /**
+   * Get all articles by author
+   */
+  async getAuthorArticles(authorId: string): Promise<Article[]> {
+    const published = await this.getPublishedArticles();
+    return published.filter(
+      (a) => a.authorId === authorId || a.author?.id === authorId || a.author?.slug === authorId
+    );
+  },
+
+  /**
+   * Create new article in Supabase public.articles table
    */
   async createArticle(input: Partial<Article>): Promise<{ article: Article | null; error: Error | null }> {
     const title = input.title?.trim() || 'Untitled Article';
@@ -151,31 +171,10 @@ export const ArticlesService = {
     const readingTime = estimateReadingTime(input.content || '');
 
     if (!isSupabaseConfigured) {
-      const all = await this.getAllArticles();
-      const newArt: Article = {
-        id: `art-${Date.now()}`,
-        title,
-        slug: baseSlug,
-        excerpt: input.excerpt || '',
-        content: input.content || '',
-        coverImage: input.coverImage || input.coverImageUrl || '/src/assets/images/insight_erp_foundation_1790919206386.jpg',
-        coverImageUrl: input.coverImageUrl || input.coverImage,
-        category: input.category || 'BUSINESS',
-        authorId: input.authorId || 'muhammad-nurcholish',
-        status: input.status || 'draft',
-        featured: input.featured ?? false,
-        publishedAt: input.status === 'published' ? new Date().toISOString() : '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        seoTitle: input.seoTitle || `${title} | ARUNA Insights`,
-        seoDescription: input.seoDescription || input.excerpt || '',
-        readingTime,
+      return {
+        article: null,
+        error: new Error('Supabase belum terkonfigurasi di environment.'),
       };
-
-      const updated = [newArt, ...all];
-      localStorage.setItem(LOCAL_ARTICLES_KEY, JSON.stringify(updated));
-      notifySubscribers();
-      return { article: newArt, error: null };
     }
 
     try {
@@ -219,27 +218,11 @@ export const ArticlesService = {
   },
 
   /**
-   * Update article
+   * Update article in Supabase public.articles table
    */
   async updateArticle(id: string, updates: Partial<Article>): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const all = await this.getAllArticles();
-      const updated = all.map((a) => {
-        if (a.id === id) {
-          const isNowPublished = updates.status === 'published' && a.status !== 'published';
-          return {
-            ...a,
-            ...updates,
-            readingTime: updates.content ? estimateReadingTime(updates.content) : a.readingTime,
-            publishedAt: isNowPublished ? new Date().toISOString() : (updates.publishedAt ?? a.publishedAt),
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return a;
-      });
-      localStorage.setItem(LOCAL_ARTICLES_KEY, JSON.stringify(updated));
-      notifySubscribers();
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -287,15 +270,11 @@ export const ArticlesService = {
   },
 
   /**
-   * Delete article
+   * Delete article from Supabase public.articles table
    */
   async deleteArticle(id: string): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const all = await this.getAllArticles();
-      const filtered = all.filter((a) => a.id !== id);
-      localStorage.setItem(LOCAL_ARTICLES_KEY, JSON.stringify(filtered));
-      notifySubscribers();
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {

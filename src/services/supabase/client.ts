@@ -2,7 +2,12 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Retrieve environment variables using Vite's import.meta.env
 // Support both standard VITE_SUPABASE_PUBLISHABLE_KEY and common VITE_SUPABASE_ANON_KEY
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const rawUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+// Normalize URL: remove any trailing slashes and /rest/v1 so auth, storage, and rest all resolve cleanly
+const supabaseUrl = rawUrl
+  ? rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '')
+  : undefined;
+
 const supabasePublishableKey = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY

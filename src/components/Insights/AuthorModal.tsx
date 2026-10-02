@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
 import { Article, Author } from '../../types';
-import { InsightsService } from '../../services/insightsStorage';
+import { AuthorsService } from '../../services/supabase/authorsService';
+import { ArticlesService } from '../../services/supabase/articlesService';
 
 interface AuthorModalProps {
   authorId: string | null;
@@ -16,12 +17,26 @@ export const AuthorModal: React.FC<AuthorModalProps> = ({
   onClose,
   onSelectArticle,
 }) => {
-  if (!isOpen || !authorId) return null;
+  const [author, setAuthor] = useState<Author | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
 
-  const author = InsightsService.getAuthorById(authorId);
-  if (!author) return null;
+  useEffect(() => {
+    if (!isOpen || !authorId) {
+      setAuthor(null);
+      setArticles([]);
+      return;
+    }
 
-  const articles = InsightsService.getAuthorArticles(authorId);
+    AuthorsService.getAuthorById(authorId).then((res) => {
+      setAuthor(res);
+    });
+
+    ArticlesService.getAuthorArticles(authorId).then((list) => {
+      setArticles(list);
+    });
+  }, [isOpen, authorId]);
+
+  if (!isOpen || !authorId || !author) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B1F33]/80 backdrop-blur-sm overflow-y-auto">
@@ -59,53 +74,48 @@ export const AuthorModal: React.FC<AuthorModalProps> = ({
           </button>
         </div>
 
-        {/* Bio */}
-        <div className="p-6 sm:p-8 border-b border-[#E5E7EB] bg-white">
-          <p className="text-xs sm:text-sm text-[#667085] leading-relaxed">
-            {author.bio}
-          </p>
-        </div>
-
-        {/* Articles List */}
+        {/* Bio & Details */}
         <div className="p-6 sm:p-8">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-4 h-4 text-[#B59A5A]" />
-            <h4 className="text-sm font-bold uppercase tracking-wider text-[#0B1F33]">
-              Artikel Oleh {author.name} ({articles.length})
+          <div className="mb-8">
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#667085] mb-2">
+              Tentang Penulis
             </h4>
+            <p className="text-sm text-[#0B1F33] leading-relaxed">
+              {author.bio}
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {articles.map((art) => (
-              <div
-                key={art.id}
-                onClick={() => {
-                  onClose();
-                  onSelectArticle(art);
-                }}
-                className="p-4 rounded-lg bg-[#F5F6F7] border border-[#E5E7EB] hover:border-[#0B1F33]/40 cursor-pointer transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-[#B59A5A] font-bold uppercase tracking-wider mb-1">
-                    <span>{art.category}</span>
-                    <span>·</span>
-                    <span>{art.publishedAt}</span>
-                    <span>·</span>
-                    <span>{art.readingTime} min</span>
+          {/* Written Articles */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <BookOpen className="w-4 h-4 text-[#B59A5A]" />
+              <h4 className="text-sm font-bold text-[#0B1F33]">
+                Artikel Ditulis ({articles.length})
+              </h4>
+            </div>
+
+            <div className="space-y-3">
+              {articles.map((art) => (
+                <div
+                  key={art.id}
+                  onClick={() => {
+                    onClose();
+                    onSelectArticle(art);
+                  }}
+                  className="p-4 rounded-xl border border-[#E5E7EB] hover:border-[#0B1F33]/40 bg-white hover:bg-[#F5F6F7]/50 cursor-pointer transition-all flex items-center justify-between group"
+                >
+                  <div className="pr-4">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#B59A5A] block mb-1">
+                      {art.category}
+                    </span>
+                    <h5 className="text-sm font-bold text-[#0B1F33] group-hover:text-[#B59A5A] transition-colors leading-snug">
+                      {art.title}
+                    </h5>
                   </div>
-                  <h5 className="text-sm font-bold text-[#0B1F33] mb-1 leading-snug">
-                    {art.title}
-                  </h5>
-                  <p className="text-xs text-[#667085] line-clamp-2">
-                    {art.excerpt}
-                  </p>
+                  <ArrowRight className="w-4 h-4 text-[#667085] group-hover:text-[#0B1F33] group-hover:translate-x-0.5 transition-all shrink-0" />
                 </div>
-                <div className="pt-2 mt-2 border-t border-[#E5E7EB] flex items-center justify-between text-xs font-semibold text-[#0B1F33]">
-                  <span>Baca Selengkapnya</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#B59A5A]" />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

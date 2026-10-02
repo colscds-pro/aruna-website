@@ -2,7 +2,6 @@ import { supabase, isSupabaseConfigured } from './client';
 import { INITIAL_ARTICLES, INITIAL_AUTHORS } from '../../data/initialArticles';
 import { INITIAL_CATEGORIES_DATA } from './categoriesService';
 import { INITIAL_SITE_MEDIA } from './mediaService';
-import { Article, Author } from '../../types';
 
 export interface MigrationResult {
   success: boolean;
@@ -16,7 +15,7 @@ export interface MigrationResult {
 
 export const MigrationService = {
   /**
-   * Check if Supabase already contains seeded data
+   * Check data counts across all Supabase tables
    */
   async checkSupabaseDataCount(): Promise<{ articles: number; authors: number; categories: number; media: number }> {
     if (!isSupabaseConfigured) {
@@ -43,7 +42,7 @@ export const MigrationService = {
   },
 
   /**
-   * Migrate existing localStorage / initial data into Supabase
+   * Seed / Sync baseline data into Supabase (Categories, Authors, Articles, Site Media)
    */
   async runMigration(): Promise<MigrationResult> {
     if (!isSupabaseConfigured) {
@@ -83,20 +82,12 @@ export const MigrationService = {
         }
       }
 
-      // 2. Migrate Authors from localStorage or INITIAL_AUTHORS
-      let authorsToMigrate = INITIAL_AUTHORS;
-      try {
-        const rawAuth = localStorage.getItem('aruna_insights_authors_v3');
-        if (rawAuth) {
-          authorsToMigrate = JSON.parse(rawAuth);
-        }
-      } catch {}
-
+      // 2. Migrate Authors
       const authorIdMap = new Map<string, string>(); // oldId -> supabase uuid
 
-      for (const auth of authorsToMigrate) {
+      for (const auth of INITIAL_AUTHORS) {
         const slug = auth.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const avatarPath = auth.avatarUrl || `authors/author_${slug}.jpg`;
+        const avatarPath = auth.avatarUrl || auth.photoUrl || `authors/author_${slug}.jpg`;
         const { data, error } = await supabase
           .from('authors')
           .upsert({
@@ -125,16 +116,8 @@ export const MigrationService = {
         dbCategories.forEach((c) => categoryMap.set(c.name, c.id));
       }
 
-      // 3. Migrate Articles from localStorage or INITIAL_ARTICLES
-      let articlesToMigrate = INITIAL_ARTICLES;
-      try {
-        const rawArt = localStorage.getItem('aruna_insights_articles_v3');
-        if (rawArt) {
-          articlesToMigrate = JSON.parse(rawArt);
-        }
-      } catch {}
-
-      for (const art of articlesToMigrate) {
+      // 3. Migrate Articles
+      for (const art of INITIAL_ARTICLES) {
         const authorUuid = authorIdMap.get(art.authorId) || Array.from(authorIdMap.values())[0] || null;
         const categoryUuid = categoryMap.get(art.category) || null;
 
@@ -194,8 +177,8 @@ export const MigrationService = {
         articlesMigrated,
         mediaMigrated,
         message: success
-          ? `Migrasi berhasil: ${articlesMigrated} artikel, ${authorsMigrated} penulis, ${categoriesMigrated} kategori, ${mediaMigrated} media disinkronkan ke Supabase.`
-          : `Migrasi selesai dengan beberapa catatan: ${articlesMigrated} artikel berhasil dipindahkan.`,
+          ? `Sinkronisasi berhasil: ${articlesMigrated} artikel, ${authorsMigrated} penulis, ${categoriesMigrated} kategori, ${mediaMigrated} media tersinkronkan ke Supabase.`
+          : `Sinkronisasi selesai dengan beberapa catatan: ${articlesMigrated} artikel berhasil dipindahkan.`,
         errors,
       };
     } catch (err: any) {
@@ -205,7 +188,7 @@ export const MigrationService = {
         categoriesMigrated,
         articlesMigrated,
         mediaMigrated,
-        message: 'Gagal menjalankan proses migrasi.',
+        message: 'Gagal menjalankan proses sinkronisasi.',
         errors: [err.message || String(err)],
       };
     }

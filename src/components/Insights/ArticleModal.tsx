@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Clock, Calendar, Share2, ArrowRight, Check, MessageSquare, User, ArrowLeft } from 'lucide-react';
-import { Article, Language } from '../../types';
-import { InsightsService } from '../../services/insightsStorage';
+import { Article, Author, Language } from '../../types';
+import { ArticlesService } from '../../services/supabase/articlesService';
+import { AuthorsService } from '../../services/supabase/authorsService';
 
 interface ArticleModalProps {
   article: Article | null;
@@ -24,11 +25,25 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [author, setAuthor] = useState<Author | null>(article?.author || null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    if (!article) return;
+    if (article.author) {
+      setAuthor(article.author);
+    } else {
+      AuthorsService.getAuthorById(article.authorId).then((res) => {
+        if (res) setAuthor(res);
+      });
+    }
+
+    ArticlesService.getRelatedArticles(article.id, article.category, 2).then((list) => {
+      setRelatedArticles(list);
+    });
+  }, [article]);
 
   if (!isOpen || !article) return null;
-
-  const author = article.author || InsightsService.getAuthorById(article.authorId);
-  const relatedArticles = InsightsService.getRelatedArticles(article.id, article.category, 2);
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {

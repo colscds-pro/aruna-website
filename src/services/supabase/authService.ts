@@ -2,47 +2,32 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './client';
 import { Profile } from '../../types';
 
-const DEMO_ADMIN_SESSION_KEY = 'aruna_demo_admin_session';
-
 export interface AuthState {
   user: User | null;
   profile: Profile | null;
   session: Session | null;
   isLoading: boolean;
-  isDemoAuth?: boolean;
 }
 
 export const AuthService = {
   /**
-   * Sign in with email and password
+   * Sign in with email and password via Supabase Auth
    */
-  async signIn(email: string, password: string): Promise<{ user: User | null; profile: Profile | null; error: Error | null }> {
+  async signIn(
+    email: string,
+    password: string
+  ): Promise<{ user: User | null; profile: Profile | null; error: Error | null }> {
     if (!isSupabaseConfigured) {
-      // In offline / unconfigured mode: provide demo access if passcode/email provided
-      if (password === 'aruna2026' || password === 'admin123') {
-        const demoUser: any = {
-          id: '00000000-0000-0000-0000-000000000001',
-          email: email || 'admin@aruna.id',
-          user_metadata: { full_name: 'ARUNA Admin' },
-        };
-        const demoProfile: Profile = {
-          id: demoUser.id,
-          fullName: 'ARUNA Administrator',
-          role: 'admin',
-        };
-        localStorage.setItem(DEMO_ADMIN_SESSION_KEY, JSON.stringify({ user: demoUser, profile: demoProfile }));
-        return { user: demoUser, profile: demoProfile, error: null };
-      }
       return {
         user: null,
         profile: null,
-        error: new Error('Supabase belum terkonfigurasi. Masukkan password demo: aruna2026 untuk menguji UI CMS.'),
+        error: new Error('Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY) belum terkonfigurasi.'),
       };
     }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -54,8 +39,20 @@ export const AuthService = {
         return { user: null, profile: null, error: new Error('Pengguna tidak ditemukan.') };
       }
 
-      // Fetch user profile from profiles table
+      // Fetch user profile from public.profiles table
       const profile = await this.getUserProfile(data.user.id);
+
+      // Verify that user has an authorized staff role (admin or editor)
+      if (profile && profile.role !== 'admin' && profile.role !== 'editor') {
+        // Sign out unauthorized user
+        await supabase.auth.signOut();
+        return {
+          user: null,
+          profile: null,
+          error: new Error('Akses ditolak: Akun Anda tidak memiliki peran administrator atau editor editorial.'),
+        };
+      }
+
       return { user: data.user, profile, error: null };
     } catch (err: any) {
       return { user: null, profile: null, error: err };
@@ -63,10 +60,47 @@ export const AuthService = {
   },
 
   /**
+   * Register a new editorial staff account via Supabase Auth
+   * Note: The database trigger automatically assigns role = 'editor' (hardened)
+   */
+  async signUp(
+    email: string,
+    password: string,
+    fullName: string
+  ): Promise<{ user: User | null; session: Session | null; error: Error | null }> {
+    if (!isSupabaseConfigured) {
+      return {
+        user: null,
+        session: null,
+        error: new Error('Supabase belum terkonfigurasi.'),
+      };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
+      });
+
+      if (error) {
+        return { user: null, session: null, error };
+      }
+
+      return { user: data.user, session: data.session, error: null };
+    } catch (err: any) {
+      return { user: null, session: null, error: err };
+    }
+  },
+
+  /**
    * Sign out current user
    */
   async signOut(): Promise<{ error: Error | null }> {
-    localStorage.removeItem(DEMO_ADMIN_SESSION_KEY);
     if (!isSupabaseConfigured) {
       return { error: null };
     }
@@ -79,16 +113,10 @@ export const AuthService = {
   },
 
   /**
-   * Get current session
+   * Get current session from Supabase
    */
   async getSession(): Promise<Session | null> {
-    if (!isSupabaseConfigured) {
-      const demo = localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
-      if (demo) {
-        return { user: JSON.parse(demo).user } as any;
-      }
-      return null;
-    }
+    if (!isSupabaseConfigured) return null;
     try {
       const { data } = await supabase.auth.getSession();
       return data.session;
@@ -98,16 +126,10 @@ export const AuthService = {
   },
 
   /**
-   * Get current user
+   * Get current user from Supabase
    */
   async getCurrentUser(): Promise<User | null> {
-    if (!isSupabaseConfigured) {
-      const demo = localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
-      if (demo) {
-        return JSON.parse(demo).user;
-      }
-      return null;
-    }
+    if (!isSupabaseConfigured) return null;
     try {
       const { data } = await supabase.auth.getUser();
       return data.user;
@@ -117,16 +139,11 @@ export const AuthService = {
   },
 
   /**
-   * Get user profile by userId
+   * Get user profile from public.profiles table
    */
   async getUserProfile(userId: string): Promise<Profile | null> {
-    if (!isSupabaseConfigured) {
-      const demo = localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
-      if (demo) {
-        return JSON.parse(demo).profile;
-      }
-      return null;
-    }
+    if (!isSupabaseConfigured) return null;
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -135,6 +152,7 @@ export const AuthService = {
         .single();
 
       if (error || !data) {
+        // If profile row doesn't exist yet, return a safe minimal editor representation
         return {
           id: userId,
           fullName: 'Staff Editorial',
@@ -144,7 +162,7 @@ export const AuthService = {
 
       return {
         id: data.id,
-        fullName: data.full_name,
+        fullName: data.full_name || 'Staff Editorial',
         role: data.role as 'admin' | 'editor',
         createdAt: data.created_at,
         updatedAt: data.updated_at,
@@ -155,21 +173,25 @@ export const AuthService = {
   },
 
   /**
-   * Listen to auth state changes
+   * Listen to auth state changes from Supabase Auth
    */
-  onAuthStateChange(callback: (user: User | null, session: Session | null) => void): { unsubscribe: () => void } {
+  onAuthStateChange(
+    callback: (user: User | null, session: Session | null, profile: Profile | null) => void
+  ): { unsubscribe: () => void } {
     if (!isSupabaseConfigured) {
-      const demo = localStorage.getItem(DEMO_ADMIN_SESSION_KEY);
-      if (demo) {
-        callback(JSON.parse(demo).user, { user: JSON.parse(demo).user } as any);
-      } else {
-        callback(null, null);
-      }
+      callback(null, null, null);
       return { unsubscribe: () => {} };
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      callback(session?.user ?? null, session);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user ?? null;
+      let profile: Profile | null = null;
+      if (user) {
+        profile = await AuthService.getUserProfile(user.id);
+      }
+      callback(user, session, profile);
     });
 
     return {

@@ -2,18 +2,13 @@ import { supabase, isSupabaseConfigured } from './client';
 import { Author } from '../../types';
 import { INITIAL_AUTHORS } from '../../data/initialArticles';
 
-const LOCAL_AUTHORS_KEY = 'aruna_insights_authors_v3';
-
 export const AuthorsService = {
+  /**
+   * Get authors from public.authors table
+   * Public visitors receive active=true authors per RLS
+   */
   async getAuthors(onlyActive = false): Promise<Author[]> {
     if (!isSupabaseConfigured) {
-      try {
-        const raw = localStorage.getItem(LOCAL_AUTHORS_KEY);
-        if (raw) {
-          const list: Author[] = JSON.parse(raw);
-          return onlyActive ? list.filter((a) => a.active !== false) : list;
-        }
-      } catch {}
       return onlyActive ? INITIAL_AUTHORS.filter((a) => a.active !== false) : INITIAL_AUTHORS;
     }
 
@@ -49,19 +44,14 @@ export const AuthorsService = {
     return list.find((a) => a.id === id || a.slug === id) || null;
   },
 
-  async createAuthor(author: Omit<Author, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ author: Author | null; error: Error | null }> {
+  /**
+   * Create author in Supabase public.authors
+   */
+  async createAuthor(
+    author: Omit<Author, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<{ author: Author | null; error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getAuthors(false);
-      const newAuthor: Author = {
-        ...author,
-        id: `author-${Date.now()}`,
-        active: author.active ?? true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const updated = [...current, newAuthor];
-      localStorage.setItem(LOCAL_AUTHORS_KEY, JSON.stringify(updated));
-      return { author: newAuthor, error: null };
+      return { author: null, error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -98,12 +88,12 @@ export const AuthorsService = {
     }
   },
 
+  /**
+   * Update author in Supabase public.authors
+   */
   async updateAuthor(id: string, updates: Partial<Author>): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getAuthors(false);
-      const updated = current.map((a) => (a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a));
-      localStorage.setItem(LOCAL_AUTHORS_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -123,12 +113,12 @@ export const AuthorsService = {
     }
   },
 
+  /**
+   * Delete author from Supabase public.authors
+   */
   async deleteAuthor(id: string): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getAuthors(false);
-      const updated = current.filter((a) => a.id !== id);
-      localStorage.setItem(LOCAL_AUTHORS_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {

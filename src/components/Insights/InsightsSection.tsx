@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, Calendar, ArrowRight, User, Sparkles, Filter, BookOpen } from 'lucide-react';
-import { Article, ArticleCategory, Language } from '../../types';
-import { InsightsService, subscribeToInsights } from '../../services/insightsStorage';
+import { Article, ArticleCategory, Author, Language } from '../../types';
+import { ArticlesService, subscribeToArticles } from '../../services/supabase/articlesService';
+import { AuthorsService } from '../../services/supabase/authorsService';
 
 interface InsightsSectionProps {
   lang: Language;
@@ -28,17 +29,27 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
   onOpenCms,
 }) => {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [primaryAuthor, setPrimaryAuthor] = useState<Author | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'ALL' | ArticleCategory>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const refreshArticles = () => {
-    // Only published articles are visible to the public!
-    setArticles(InsightsService.getPublishedArticles());
+  const refreshArticles = async () => {
+    // Only published articles are visible to the public per Supabase RLS!
+    const list = await ArticlesService.getPublishedArticles();
+    setArticles(list);
+
+    const author = await AuthorsService.getAuthorById('muhammad-nurcholish');
+    if (author) {
+      setPrimaryAuthor(author);
+    } else {
+      const allAuthors = await AuthorsService.getAuthors(true);
+      setPrimaryAuthor(allAuthors[0] || null);
+    }
   };
 
   useEffect(() => {
     refreshArticles();
-    return subscribeToInsights(refreshArticles);
+    return subscribeToArticles(refreshArticles);
   }, []);
 
   // Filtered published articles
@@ -58,7 +69,6 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
 
   const featured = articles.find((a) => a.featured) || articles[0];
   const listArticles = filtered.filter((a) => a.id !== featured?.id || selectedCategory !== 'ALL' || searchQuery.trim().length > 0);
-  const primaryAuthor = InsightsService.getAuthorById('muhammad-nurcholish') || InsightsService.getAuthors()[0];
 
   return (
     <section id="insights" className="py-20 md:py-28 bg-white border-t border-[#EAECF0]">

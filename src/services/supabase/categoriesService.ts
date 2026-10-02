@@ -9,18 +9,13 @@ export const INITIAL_CATEGORIES_DATA: Category[] = [
   { id: 'cat-field', name: 'FIELD NOTES', slug: 'field-notes', description: 'Catatan observasi langsung dari lantai toko dan gudang.', active: true },
 ];
 
-const LOCAL_CATEGORIES_KEY = 'aruna_categories_v1';
-
 export const CategoriesService = {
+  /**
+   * Get categories from public.categories table
+   * Public visitors receive active=true categories per RLS
+   */
   async getCategories(onlyActive = false): Promise<Category[]> {
     if (!isSupabaseConfigured) {
-      try {
-        const raw = localStorage.getItem(LOCAL_CATEGORIES_KEY);
-        if (raw) {
-          const list: Category[] = JSON.parse(raw);
-          return onlyActive ? list.filter((c) => c.active) : list;
-        }
-      } catch {}
       return onlyActive ? INITIAL_CATEGORIES_DATA.filter((c) => c.active) : INITIAL_CATEGORIES_DATA;
     }
 
@@ -48,18 +43,14 @@ export const CategoriesService = {
     }
   },
 
-  async createCategory(cat: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ category: Category | null; error: Error | null }> {
+  /**
+   * Create category in Supabase public.categories
+   */
+  async createCategory(
+    cat: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<{ category: Category | null; error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getCategories(false);
-      const newCat: Category = {
-        ...cat,
-        id: `cat-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const updated = [...current, newCat];
-      localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
-      return { category: newCat, error: null };
+      return { category: null, error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -92,12 +83,12 @@ export const CategoriesService = {
     }
   },
 
+  /**
+   * Update category in Supabase public.categories
+   */
   async updateCategory(id: string, updates: Partial<Category>): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getCategories(false);
-      const updated = current.map((c) => (c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c));
-      localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -114,12 +105,12 @@ export const CategoriesService = {
     }
   },
 
+  /**
+   * Delete category from Supabase public.categories
+   */
   async deleteCategory(id: string): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const current = await this.getCategories(false);
-      const updated = current.filter((c) => c.id !== id);
-      localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {

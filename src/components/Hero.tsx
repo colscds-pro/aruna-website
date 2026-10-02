@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Compass } from 'lucide-react';
 import { Language } from '../types';
 import { HERO_IMAGE } from '../data/content';
+import { useSiteMedia } from '../services/supabase/useSiteMedia';
 
 interface HeroProps {
   lang: Language;
@@ -10,6 +11,7 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ lang, onOpenConsultation }) => {
   const [imageError, setImageError] = useState(false);
+  const { url: heroImageUrl } = useSiteMedia('hero-consulting-meeting', HERO_IMAGE);
 
   return (
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-white">
@@ -61,7 +63,7 @@ export const Hero: React.FC<HeroProps> = ({ lang, onOpenConsultation }) => {
           <div className="relative aspect-[16/9] w-full bg-[#0B1F33]/5 overflow-hidden">
             {!imageError ? (
               <img
-                src={HERO_IMAGE}
+                src={heroImageUrl}
                 alt="ARUNA senior advisor and business founder reviewing operational workflows"
                 className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-[1.01]"
                 referrerPolicy="no-referrer"

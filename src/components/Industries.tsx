@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingBag, Utensils, Hotel, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 import { Language } from '../types';
 import { CONTENT } from '../data/content';
+import { useSiteMedia } from '../services/supabase/useSiteMedia';
 
 interface IndustriesProps {
   lang: Language;
@@ -14,6 +15,14 @@ export const Industries: React.FC<IndustriesProps> = ({ lang, onOpenConsultation
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const current = t.items.find((item) => item.id === selectedIndustry) || t.items[0];
+
+  const mediaSlug =
+    selectedIndustry === 'retail'
+      ? 'industry-retail'
+      : selectedIndustry === 'fb'
+      ? 'industry-fnb'
+      : 'industry-hospitality';
+  const { url: dynamicIndustryUrl } = useSiteMedia(mediaSlug, current.imageSrc);
 
   const industryIcons = {
     retail: <ShoppingBag className="w-4 h-4" />,
@@ -68,7 +77,7 @@ export const Industries: React.FC<IndustriesProps> = ({ lang, onOpenConsultation
             <div className="lg:col-span-5 relative aspect-[4/3] lg:aspect-auto min-h-[320px] bg-[#0B1F33]/5 overflow-hidden">
               {!imageErrors[current.id] ? (
                 <img
-                  src={current.imageSrc}
+                  src={dynamicIndustryUrl}
                   alt={current.name}
                   className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-[1.02]"
                   referrerPolicy="no-referrer"

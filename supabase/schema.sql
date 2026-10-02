@@ -383,6 +383,69 @@ VALUES
   ('Founder Profile Photo', 'founder-aruna', 'Foto profil Muhammad Nurcholish', 'authors/author_nurcholish.jpg', 'authors/author_nurcholish.jpg', 'about', 'Muhammad Nurcholish Founder ARUNA', true)
 ON CONFLICT (slug) DO NOTHING;
 
+-- Seed Articles
+INSERT INTO public.articles (id, title, slug, excerpt, content, cover_image_url, author_id, category_id, status, featured, published_at)
+VALUES
+  (
+    '33333333-3333-3333-3333-333333333301',
+    'ERP Tidak Akan Memperbaiki Proses Bisnis yang Berantakan',
+    'erp-tidak-akan-memperbaiki-proses-bisnis-yang-berantakan',
+    'Banyak pemilik bisnis berharap software ERP akan secara otomatis menyelesaikan kebocoran persediaan dan kesemrawutan kas. Realitasnya: software hanya mempercepat alur yang ada—jika alurnya belum ditata, teknologi hanya akan mengotomatisasi kekacauan.',
+    'Setiap beberapa bulan, kami bertemu dengan pemilik bisnis yang merasa lelah dengan operasionalnya.
+
+Ceritanya hampir selalu serupa: Stok barang sering selisih tanpa ada yang tahu letak kebocorannya. Faktur pembelian dari supplier menumpuk di meja admin tanpa kepastian jatuh tempo. Kasir di outlet sering mengalami selisih settlement kartu di akhir shift.
+
+Dan kesimpulan yang kerap diambil oleh sang pemilik: "Bisnis gue butuh ERP secepatnya."
+
+Namun di ARUNA, kami selalu mengawali pertemuan dengan sebuah pengingat yang penting:
+"ERP bukan obat untuk proses bisnis yang belum tertata. Jika alur kerja Anda hari ini berantakan, memasang ERP hanya akan mengotomatisasi kekacauan tersebut dengan biaya yang jauh lebih mahal."
+
+Software hanyalah alat pencatat yang patuh. Ia tidak bisa menegur staf gudang yang menerima barang tanpa surat jalan resmi. Di ARUNA, filosofi kami tegas: Business first. Software second.',
+    'insights/insight_erp_foundation.jpg',
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222203',
+    'published',
+    true,
+    '2026-09-18T10:30:00Z'
+  ),
+  (
+    '33333333-3333-3333-3333-333333333302',
+    'Buka Cabang Kedua Bukan Cuma Soal Modal',
+    'buka-cabang-kedua-bukan-cuma-soal-modal',
+    'Saat masih satu outlet, bisnis bisa bertahan berkat pengawasan fisik langsung dari pemilik. Namun saat cabang kedua dibuka, kompleksitas melipatgandakan risiko. Kenali tanda-tanda sistem Anda belum siap sebelum menandatangani sewa baru.',
+    'Membuka cabang kedua adalah momen yang sangat membanggakan bagi setiap pemilik bisnis retail atau F&B. Itu adalah tanda bahwa produk Anda diterima pasar dan unit pertama menghasilkan keuntungan.
+
+Namun, di balik kegembiraan menyiapkan lokasi baru, ada pertanyaan yang kerap muncul: "Kalau bisnis gue tambah besar dan gue nggak bisa nongkrong di sana setiap hari, toko kedua bakal jalan bener nggak ya?"
+
+Banyak pengusaha tidak menyadari bahwa keberhasilan outlet pertama mereka sering kali ditopang oleh pengawasan fisik langsung dan ketergantungan pada personil kunci. Tubuh Anda hanya satu. Manajer senior Anda tidak bisa berada di dua tempat sekaligus.
+
+Ketika cabang kedua dibuka, kompleksitas bertambah pesat: transfer stok memicu selisih, harga beli supplier bervariasi, arus kas terbagi dua. Pertanyaannya bukan hanya apakah punya modal, tetapi apakah cara kerja dan sistem siap mengelola cabang kedua.',
+    'insights/insight_second_branch.jpg',
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222202',
+    'published',
+    true,
+    '2026-09-24T14:15:00Z'
+  ),
+  (
+    '33333333-3333-3333-3333-333333333303',
+    'Kalau Owner Harus Tanya Satu-Satu untuk Tahu Kondisi Bisnis, Ada Masalah di Sistemnya',
+    'kalau-owner-harus-tanya-satu-satu-untuk-tahu-kondisi-bisnis-ada-masalah-di-sistemnya',
+    'Jika untuk mengetahui sisa stok, status hutang supplier, atau laba bulanan Anda masih harus mengontak admin, kasir, dan akuntan satu per satu—itu tanda jelas bahwa bisnis bekerja secara terfragmentasi.',
+    'Di banyak bisnis yang sedang bertumbuh, aktivitas harian pemilik bisnis dihabiskan untuk "berburu angka". Pagi tanya kasir, siang tanya bagian gudang, sore telepon akuntan eksternal.
+
+Jika bisnis Anda masih membutuhkan owner untuk menjadi integrator informasi antar-divisi, berarti sistem kerja Anda belum berjalan.
+
+Sistem yang sehat bekerja sebaliknya: informasi mengalir secara otomatis dari transaksi kasir dan penerimaan gudang menuju dashboard ringkasan pemilik secara real-time. Dengan begitu, energi pemilik bisnis bisa dialihkan dari sekadar mengawasi rutinitas teknis menuju pengambilan keputusan strategis.',
+    'insights/insight_field_notes.jpg',
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222205',
+    'published',
+    true,
+    '2026-09-28T16:00:00Z'
+  )
+ON CONFLICT (slug) DO NOTHING;
+
 -- ==============================================================================
 -- 12. ADMIN BOOTSTRAP INSTRUCTIONS (FOR PROJECT OWNER)
 -- ==============================================================================

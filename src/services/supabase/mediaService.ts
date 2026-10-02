@@ -2,7 +2,6 @@ import { supabase, isSupabaseConfigured } from './client';
 import { SiteMedia, MediaSection } from '../../types';
 
 const BUCKET_NAME = 'aruna-media';
-const LOCAL_MEDIA_KEY = 'aruna_site_media_v1';
 
 export const INITIAL_SITE_MEDIA: SiteMedia[] = [
   {
@@ -79,17 +78,11 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
 
 export const MediaService = {
   /**
-   * Fetch all registered site media
+   * Fetch all registered site media from public.site_media table
+   * Public visitors receive active=true media according to RLS
    */
   async getAllMedia(section?: MediaSection): Promise<SiteMedia[]> {
     if (!isSupabaseConfigured) {
-      try {
-        const raw = localStorage.getItem(LOCAL_MEDIA_KEY);
-        if (raw) {
-          const list: SiteMedia[] = JSON.parse(raw);
-          return section ? list.filter((m) => m.section === section) : list;
-        }
-      } catch {}
       return section ? INITIAL_SITE_MEDIA.filter((m) => m.section === section) : INITIAL_SITE_MEDIA;
     }
 
@@ -105,7 +98,7 @@ export const MediaService = {
 
       return data.map((d) => {
         let publicUrl = d.public_url;
-        // If public_url is not an absolute HTTP URL, construct it from Supabase Storage
+        // If public_url is relative storage path, construct full Supabase Storage public URL
         if (!publicUrl.startsWith('http')) {
           const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(d.storage_path);
           if (urlData?.publicUrl) {
@@ -142,7 +135,7 @@ export const MediaService = {
   },
 
   /**
-   * Upload image file to Supabase Storage and register in site_media table
+   * Upload image file to Supabase Storage bucket 'aruna-media' and register in site_media table
    */
   async uploadMedia(
     file: File,
@@ -174,31 +167,12 @@ export const MediaService = {
     const storagePath = `${folder}/${timestamp}_${cleanFilename}`;
 
     if (!isSupabaseConfigured) {
-      // In offline / local demo mode, create local object URL or data URL
-      const fallbackUrl = URL.createObjectURL(file);
-      const newMedia: SiteMedia = {
-        id: `med-${timestamp}`,
-        name: metadata.name || file.name.split('.')[0],
-        slug: metadata.slug || `media-${timestamp}`,
-        description: metadata.description || '',
-        storagePath,
-        publicUrl: fallbackUrl,
-        mediaType: file.type,
-        altText: metadata.altText || metadata.name || '',
-        section: metadata.section || 'general',
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const current = await this.getAllMedia();
-      localStorage.setItem(LOCAL_MEDIA_KEY, JSON.stringify([newMedia, ...current]));
-      return { media: newMedia, publicUrl: fallbackUrl, error: null };
+      return { media: null, publicUrl: '', error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
       // 1. Upload to Supabase Storage bucket 'aruna-media'
-      const { data: storageData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(storagePath, file, {
           cacheControl: '3600',
@@ -209,7 +183,7 @@ export const MediaService = {
         return { media: null, publicUrl: '', error: uploadError };
       }
 
-      // 2. Get Public URL
+      // 2. Get Public URL from Supabase Storage
       const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
       const publicUrl = urlData.publicUrl;
 
@@ -273,7 +247,7 @@ export const MediaService = {
   },
 
   /**
-   * Replace existing media file
+   * Replace existing media file in Supabase Storage
    */
   async replaceMedia(id: string, file: File): Promise<{ publicUrl: string; error: Error | null }> {
     const list = await this.getAllMedia();
@@ -283,15 +257,11 @@ export const MediaService = {
     }
 
     if (!isSupabaseConfigured) {
-      const newUrl = URL.createObjectURL(file);
-      existing.publicUrl = newUrl;
-      existing.updatedAt = new Date().toISOString();
-      localStorage.setItem(LOCAL_MEDIA_KEY, JSON.stringify(list));
-      return { publicUrl: newUrl, error: null };
+      return { publicUrl: '', error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
-      // Overwrite file at same storage path or new path
+      // Overwrite file at same storage path
       const { error: uploadError } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(existing.storagePath, file, { upsert: true });
@@ -313,17 +283,14 @@ export const MediaService = {
   },
 
   /**
-   * Update metadata for media
+   * Update metadata for media in public.site_media
    */
   async updateMetadata(
     id: string,
     updates: Partial<Pick<SiteMedia, 'name' | 'slug' | 'description' | 'altText' | 'section' | 'active'>>
   ): Promise<{ error: Error | null }> {
     if (!isSupabaseConfigured) {
-      const list = await this.getAllMedia();
-      const updated = list.map((m) => (m.id === id ? { ...m, ...updates, updatedAt: new Date().toISOString() } : m));
-      localStorage.setItem(LOCAL_MEDIA_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
@@ -377,7 +344,7 @@ export const MediaService = {
   },
 
   /**
-   * Delete media item safely
+   * Delete media item safely from Supabase Storage and public.site_media
    */
   async deleteMedia(id: string): Promise<{ error: Error | null }> {
     const list = await this.getAllMedia();
@@ -385,13 +352,11 @@ export const MediaService = {
     if (!media) return { error: null };
 
     if (!isSupabaseConfigured) {
-      const updated = list.filter((m) => m.id !== id);
-      localStorage.setItem(LOCAL_MEDIA_KEY, JSON.stringify(updated));
-      return { error: null };
+      return { error: new Error('Supabase belum terkonfigurasi.') };
     }
 
     try {
-      // 1. Delete from storage
+      // 1. Delete from storage bucket
       await supabase.storage.from(BUCKET_NAME).remove([media.storagePath]);
 
       // 2. Delete record from table
