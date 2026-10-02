@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="#0B1F33"/>
+  <!-- Two primary horizontal bars -->
+  <rect x="14" y="24" width="36" height="5" rx="2.5" fill="#F7F5EF"/>
+  <rect x="14" y="35" width="36" height="5" rx="2.5" fill="#F7F5EF"/>
+  <!-- Subtle accent geometry -->
+  <path d="M22 18C18 22 18 42 22 46" stroke="#B59A5A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M42 18C46 22 46 42 42 46" stroke="#B59A5A" stroke-width="3" stroke-linecap="round"/>
+</svg>
