@@ -36,6 +36,7 @@ import { MediaService } from '../../services/supabase/mediaService';
 import { AuthService } from '../../services/supabase/authService';
 import { MigrationService, MigrationResult } from '../../services/supabase/migrationService';
 import { SUPABASE_CONFIG_INFO, isSupabaseConfigured } from '../../services/supabase/client';
+import { BUNDLED_IMAGES } from '../../assets/bundledImages';
 
 interface AdminCmsModalProps {
   isOpen: boolean;
@@ -44,12 +45,12 @@ interface AdminCmsModalProps {
 }
 
 const DEFAULT_COVER_PRESETS = [
-  { label: 'Minimalist Teak Desk (ERP)', url: '/src/assets/images/insight_erp_foundation_1790919206386.jpg' },
-  { label: 'Boutique Store Glass (Branch)', url: '/src/assets/images/insight_second_branch_1790919218110.jpg' },
-  { label: 'Consulting Meeting (Strategy)', url: '/src/assets/images/hero_consulting_meeting_1790916424867.jpg' },
-  { label: 'Retail Store Interior (Retail)', url: '/src/assets/images/industry_retail_store_1790916438753.jpg' },
-  { label: 'F&B Operations (Kitchen/Cafe)', url: '/src/assets/images/industry_fb_operations_1790916451581.jpg' },
-  { label: 'Hospitality Lounge (Hotel)', url: '/src/assets/images/industry_hospitality_1790916463500.jpg' },
+  { label: 'Minimalist Teak Desk (ERP)', url: BUNDLED_IMAGES.erpInsight },
+  { label: 'Boutique Store Glass (Branch)', url: BUNDLED_IMAGES.branchInsight },
+  { label: 'Consulting Meeting (Strategy)', url: BUNDLED_IMAGES.hero },
+  { label: 'Retail Store Interior (Retail)', url: BUNDLED_IMAGES.retail },
+  { label: 'F&B Operations (Kitchen/Cafe)', url: BUNDLED_IMAGES.fb },
+  { label: 'Hospitality Lounge (Hotel)', url: BUNDLED_IMAGES.hospitality },
 ];
 
 export const AdminCmsModal: React.FC<AdminCmsModalProps> = ({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Article, Language } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -18,9 +18,32 @@ import { ConsultationModal } from './components/ConsultationModal';
 import { ArticleModal } from './components/Insights/ArticleModal';
 import { AuthorModal } from './components/Insights/AuthorModal';
 import { AdminCmsModal } from './components/Insights/AdminCmsModal';
+import { AdminPortal } from './components/Admin/AdminPortal';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('id');
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname;
+    }
+    return '/';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+      setCurrentPath(path);
+      window.scrollTo(0, 0);
+    }
+  };
 
   // Modals state
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
@@ -53,12 +76,37 @@ export default function App() {
   };
 
   const handleOpenCms = () => {
-    setIsCmsModalOpen(true);
+    navigateTo('/admin');
   };
 
   const handleCloseCms = () => {
     setIsCmsModalOpen(false);
+    if (currentPath === '/admin') {
+      navigateTo('/');
+    }
   };
+
+  // Route /admin -> render secure Admin Portal
+  if (currentPath === '/admin') {
+    return (
+      <>
+        <AdminPortal
+          onBackToWebsite={() => navigateTo('/')}
+          onPreviewArticle={handleSelectArticle}
+        />
+        {/* Editorial Article Reader Modal for previewing articles from CMS */}
+        <ArticleModal
+          article={selectedArticle}
+          isOpen={Boolean(selectedArticle)}
+          onClose={handleCloseArticle}
+          lang={lang}
+          onOpenConsultation={handleOpenConsultation}
+          onSelectArticle={handleSelectArticle}
+          onSelectAuthor={handleSelectAuthor}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFFFF] text-[#0B1F33]">

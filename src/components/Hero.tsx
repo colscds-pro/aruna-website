@@ -12,6 +12,19 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({ lang, onOpenConsultation }) => {
   const [imageError, setImageError] = useState(false);
   const { url: heroImageUrl } = useSiteMedia('hero-consulting-meeting', HERO_IMAGE);
+  const [imgSrc, setImgSrc] = useState(heroImageUrl);
+
+  React.useEffect(() => {
+    setImgSrc(heroImageUrl);
+  }, [heroImageUrl]);
+
+  const handleImageError = () => {
+    if (imgSrc !== HERO_IMAGE) {
+      setImgSrc(HERO_IMAGE);
+    } else {
+      setImageError(true);
+    }
+  };
 
   return (
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-white">
@@ -63,11 +76,11 @@ export const Hero: React.FC<HeroProps> = ({ lang, onOpenConsultation }) => {
           <div className="relative aspect-[16/9] w-full bg-[#0B1F33]/5 overflow-hidden">
             {!imageError ? (
               <img
-                src={heroImageUrl}
+                src={imgSrc}
                 alt="ARUNA senior advisor and business founder reviewing operational workflows"
                 className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-[1.01]"
                 referrerPolicy="no-referrer"
-                onError={() => setImageError(true)}
+                onError={handleImageError}
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0B1F33] to-[#132D47] text-white p-8 text-center">

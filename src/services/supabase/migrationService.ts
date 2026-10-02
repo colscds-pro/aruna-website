@@ -128,7 +128,7 @@ export const MigrationService = {
             slug: art.slug,
             excerpt: art.excerpt,
             content: art.content,
-            cover_image_url: art.coverImage,
+            cover_image_url: art.coverImageUrl || art.coverImage,
             author_id: authorUuid,
             category_id: categoryUuid,
             status: art.status,

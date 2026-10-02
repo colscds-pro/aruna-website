@@ -1,9 +1,10 @@
 import { IndustryItem, MethodologyStage, ImplementationStep, ServiceItem, DiagnosticQuestion } from '../types';
+import { BUNDLED_IMAGES } from '../assets/bundledImages';
 
-export const HERO_IMAGE = '/src/assets/images/hero_consulting_meeting_1790916424867.jpg';
-export const RETAIL_IMAGE = '/src/assets/images/industry_retail_store_1790916438753.jpg';
-export const FB_IMAGE = '/src/assets/images/industry_fb_operations_1790916451581.jpg';
-export const HOSPITALITY_IMAGE = '/src/assets/images/industry_hospitality_1790916463500.jpg';
+export const HERO_IMAGE = BUNDLED_IMAGES.hero;
+export const RETAIL_IMAGE = BUNDLED_IMAGES.retail;
+export const FB_IMAGE = BUNDLED_IMAGES.fb;
+export const HOSPITALITY_IMAGE = BUNDLED_IMAGES.hospitality;
 
 export const CONTENT = {
   id: {

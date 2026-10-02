@@ -3,6 +3,7 @@ import { X, Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
 import { Article, Author } from '../../types';
 import { AuthorsService } from '../../services/supabase/authorsService';
 import { ArticlesService } from '../../services/supabase/articlesService';
+import { BUNDLED_IMAGES } from '../../assets/bundledImages';
 
 interface AuthorModalProps {
   authorId: string | null;
@@ -50,6 +51,9 @@ export const AuthorModal: React.FC<AuthorModalProps> = ({
                 alt={author.name}
                 className="w-full h-full object-cover object-center"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = BUNDLED_IMAGES.authorNurcholish;
+                }}
               />
             </div>
             <div>

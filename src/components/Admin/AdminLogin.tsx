@@ -50,19 +50,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-2xl border border-[#EAECF0] shadow-sm">
-          {!isSupabaseConfigured && (
-            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="block font-semibold mb-0.5">Mode Pratinjau CMS Lokal</strong>
-                  <span>
-                    Kredensial Supabase produksi belum terpasang di environment. Masukkan password demo <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">aruna2026</code> untuk menguji seluruh fitur antarmuka CMS.
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {errorMessage && (
             <div className="mb-6 p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">

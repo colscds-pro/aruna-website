@@ -3,6 +3,7 @@ import { Search, Clock, Calendar, ArrowRight, User, Sparkles, Filter, BookOpen }
 import { Article, ArticleCategory, Author, Language } from '../../types';
 import { ArticlesService, subscribeToArticles } from '../../services/supabase/articlesService';
 import { AuthorsService } from '../../services/supabase/authorsService';
+import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 
 interface InsightsSectionProps {
   lang: Language;
@@ -143,6 +144,9 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
                     alt={featured.title}
                     className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = getBundledFallback(featured.slug || featured.title);
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full bg-[#0B1F33] flex items-center justify-center p-8 text-white">
@@ -187,6 +191,9 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
                           alt=""
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = BUNDLED_IMAGES.authorNurcholish;
+                          }}
                         />
                       </div>
                     )}
@@ -228,6 +235,9 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
                         alt={art.title}
                         className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = getBundledFallback(art.slug || art.title);
+                        }}
                       />
                       <div className="absolute top-3 left-3">
                         <span className="px-2.5 py-0.5 rounded bg-[#0B1F33]/85 text-white text-[10px] font-mono font-bold uppercase tracking-wider backdrop-blur-xs">
@@ -282,6 +292,9 @@ export const InsightsSection: React.FC<InsightsSectionProps> = ({
                     alt={primaryAuthor.name}
                     className="w-full h-full object-cover object-center"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = BUNDLED_IMAGES.authorNurcholish;
+                    }}
                   />
                 </div>
               </div>

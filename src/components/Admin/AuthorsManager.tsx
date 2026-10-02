@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, CheckCircle2, User, Upload, ArrowLeft } from 'lucid
 import { Author } from '../../types';
 import { AuthorsService } from '../../services/supabase/authorsService';
 import { MediaService } from '../../services/supabase/mediaService';
+import { BUNDLED_IMAGES } from '../../assets/bundledImages';
 
 export const AuthorsManager: React.FC = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -113,7 +114,7 @@ export const AuthorsManager: React.FC = () => {
               slug: '',
               role: 'Author, ARUNA',
               bio: '',
-              photoUrl: '/src/assets/images/author_nurcholish_1790919189982.jpg',
+              photoUrl: BUNDLED_IMAGES.authorNurcholish,
               active: true,
             });
           }}

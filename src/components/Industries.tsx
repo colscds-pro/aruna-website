@@ -23,6 +23,19 @@ export const Industries: React.FC<IndustriesProps> = ({ lang, onOpenConsultation
       ? 'industry-fnb'
       : 'industry-hospitality';
   const { url: dynamicIndustryUrl } = useSiteMedia(mediaSlug, current.imageSrc);
+  const [currentImgSrc, setCurrentImgSrc] = useState(dynamicIndustryUrl);
+
+  React.useEffect(() => {
+    setCurrentImgSrc(dynamicIndustryUrl);
+  }, [dynamicIndustryUrl]);
+
+  const handleImageError = () => {
+    if (currentImgSrc !== current.imageSrc) {
+      setCurrentImgSrc(current.imageSrc);
+    } else {
+      setImageErrors((prev) => ({ ...prev, [current.id]: true }));
+    }
+  };
 
   const industryIcons = {
     retail: <ShoppingBag className="w-4 h-4" />,
@@ -77,13 +90,11 @@ export const Industries: React.FC<IndustriesProps> = ({ lang, onOpenConsultation
             <div className="lg:col-span-5 relative aspect-[4/3] lg:aspect-auto min-h-[320px] bg-[#0B1F33]/5 overflow-hidden">
               {!imageErrors[current.id] ? (
                 <img
-                  src={dynamicIndustryUrl}
+                  src={currentImgSrc}
                   alt={current.name}
                   className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-[1.02]"
                   referrerPolicy="no-referrer"
-                  onError={() =>
-                    setImageErrors((prev) => ({ ...prev, [current.id]: true }))
-                  }
+                  onError={handleImageError}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-[#0B1F33] text-white p-8 text-center">

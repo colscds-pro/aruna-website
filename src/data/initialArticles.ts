@@ -1,4 +1,5 @@
 import { Article, Author } from '../types';
+import { BUNDLED_IMAGES } from '../assets/bundledImages';
 
 export const INITIAL_AUTHORS: Author[] = [
   {
@@ -6,7 +7,8 @@ export const INITIAL_AUTHORS: Author[] = [
     name: 'Muhammad Nurcholish',
     role: 'Founder, ARUNA',
     bio: 'Founder ARUNA. Praktisi transformasi bisnis dan implementasi ERP untuk industri retail, F&B, dan hospitality di Indonesia. Berfokus membantu para pemilik bisnis membangun struktur operasional yang masuk akal sebelum menyentuh konfigurasi sistem teknologi.',
-    photoUrl: '/src/assets/images/author_nurcholish_1790919189982.jpg',
+    photoUrl: BUNDLED_IMAGES.authorNurcholish,
+    avatarUrl: 'authors/author_nurcholish.jpg',
   },
 ];
 
@@ -24,7 +26,8 @@ export const INITIAL_ARTICLES: Article[] = [
     createdAt: '2026-09-15T09:00:00Z',
     updatedAt: '2026-09-18T10:30:00Z',
     readingTime: 6,
-    coverImage: '/src/assets/images/insight_erp_foundation_1790919206386.jpg',
+    coverImage: BUNDLED_IMAGES.erpInsight,
+    coverImageUrl: 'insights/insight_erp_foundation.jpg',
     seoTitle: 'ERP Tidak Akan Memperbaiki Proses Bisnis yang Berantakan | ARUNA Insights',
     seoDescription: 'Mengapa software ERP tidak bisa menyelesaikan masalah bisnis sebelum alur proses dan otorisasi dirapikan terlebih dahulu.',
     content: `Setiap beberapa bulan, kami bertemu dengan pemilik bisnis yang merasa lelah dengan operasionalnya.
@@ -82,7 +85,8 @@ Ketika fondasinya sudah rapi, sistem ERP bukan lagi beban yang menyiksa tim, mel
     createdAt: '2026-09-20T11:00:00Z',
     updatedAt: '2026-09-24T14:15:00Z',
     readingTime: 5,
-    coverImage: '/src/assets/images/insight_second_branch_1790919218110.jpg',
+    coverImage: BUNDLED_IMAGES.branchInsight,
+    coverImageUrl: 'insights/insight_second_branch.jpg',
     seoTitle: 'Buka Cabang Kedua Bukan Cuma Soal Modal | ARUNA Insights',
     seoDescription: 'Tanda-tanda krusial bahwa operasional dan sistem bisnis Anda belum siap untuk ekspansi cabang kedua.',
     content: `Membuka cabang kedua adalah momen yang sangat membanggakan bagi setiap pemilik bisnis retail atau F&B. Itu adalah tanda bahwa produk Anda diterima pasar dan unit pertama menghasilkan keuntungan.
@@ -138,7 +142,8 @@ Ekspansi yang berkelanjutan bukan tentang seberapa cepat Anda membuka cabang, me
     createdAt: '2026-09-25T08:30:00Z',
     updatedAt: '2026-09-28T16:00:00Z',
     readingTime: 6,
-    coverImage: '/src/assets/images/hero_consulting_meeting_1790916424867.jpg',
+    coverImage: BUNDLED_IMAGES.hero,
+    coverImageUrl: 'homepage/hero_consulting_meeting.jpg',
     seoTitle: 'Ketergantungan Informasi Manual pada Bisnis Berkembang | ARUNA Insights',
     seoDescription: 'Mengapa fragmented information mengikis kendali manajemen dan memperlambat pengambilan keputusan bisnis.',
     content: `Bayangkan skenario yang sering dialami oleh pemilik bisnis beromzet belasan miliar rupiah ini:
@@ -191,7 +196,8 @@ Hasil akhirnya: pemilik bisnis cukup membuka satu layar untuk melihat kondisi op
     createdAt: '2026-09-28T10:00:00Z',
     updatedAt: '2026-09-30T09:00:00Z',
     readingTime: 5,
-    coverImage: '/src/assets/images/industry_retail_store_1790916438753.jpg',
+    coverImage: BUNDLED_IMAGES.retail,
+    coverImageUrl: 'industries/industry_retail_store.jpg',
     seoTitle: 'SOP Bukan Dokumen, Tapi Cara Bisnis Bekerja | ARUNA Insights',
     seoDescription: 'Menemukan titik temu antara disiplin tata kelola ERP dengan fleksibilitas yang menjaga keunikan merek bisnis.',
     content: `Kami sering melihat perusahaan yang bangga menunjukkan buku Standard Operating Procedure (SOP) ratusan halaman yang ditandatangani oleh konsultan manajemen terkemuka.
@@ -223,7 +229,8 @@ Ketika sistem secara alami membimbing tim bekerja sesuai alur yang benar, disipl
     createdAt: '2026-09-29T15:00:00Z',
     updatedAt: '2026-10-01T12:00:00Z',
     readingTime: 5,
-    coverImage: '/src/assets/images/industry_fb_operations_1790916451581.jpg',
+    coverImage: BUNDLED_IMAGES.fb,
+    coverImageUrl: 'industries/industry_fb_operations.jpg',
     seoTitle: 'Bisnis Anda Tidak Berantakan, Prosesnya yang Belum Ditata | ARUNA',
     seoDescription: 'Mengapa kegagalan operasional sering kali bukan karena tim yang buruk, melainkan ketiadaan struktur proses kerja.',
     content: `Ketika seorang pemilik bisnis datang kepada kami dengan keluhan:

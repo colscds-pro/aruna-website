@@ -3,6 +3,8 @@ import { Article } from '../../types';
 import { INITIAL_ARTICLES } from '../../data/initialArticles';
 import { AuthorsService } from './authorsService';
 import { CategoriesService } from './categoriesService';
+import { MediaService } from './mediaService';
+import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 
 // Listener system for reactive UI updates across components
 type Listener = () => void;
@@ -321,13 +323,21 @@ export const ArticlesService = {
     const authorData = row.author;
     const categoryData = row.category;
 
+    const resolvedCoverImage = row.cover_image_url
+      ? MediaService.resolveStorageUrl(row.cover_image_url, row.slug || row.title)
+      : getBundledFallback(row.slug || row.title);
+
+    const resolvedAuthorPhoto = authorData?.avatar_url
+      ? MediaService.resolveStorageUrl(authorData.avatar_url, 'author')
+      : BUNDLED_IMAGES.authorNurcholish;
+
     return {
       id: row.id,
       title: row.title,
       slug: row.slug,
       excerpt: row.excerpt,
       content: row.content,
-      coverImage: row.cover_image_url || '/src/assets/images/insight_erp_foundation_1790919206386.jpg',
+      coverImage: resolvedCoverImage,
       coverImageUrl: row.cover_image_url,
       category: categoryData?.name || 'BUSINESS',
       categoryId: row.category_id,
@@ -339,7 +349,7 @@ export const ArticlesService = {
             slug: authorData.slug,
             role: 'Founder, ARUNA',
             bio: authorData.bio,
-            photoUrl: authorData.avatar_url || '/src/assets/images/author_nurcholish_1790919189982.jpg',
+            photoUrl: resolvedAuthorPhoto,
             avatarUrl: authorData.avatar_url,
           }
         : undefined,

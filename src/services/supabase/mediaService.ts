@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from './client';
 import { SiteMedia, MediaSection } from '../../types';
+import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 
 const BUCKET_NAME = 'aruna-media';
 
@@ -10,7 +11,7 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
     slug: 'hero-consulting-meeting',
     description: 'Foto utama hero: diskusi penasihat ARUNA bersama founder bisnis',
     storagePath: 'homepage/hero_consulting_meeting.jpg',
-    publicUrl: '/src/assets/images/hero_consulting_meeting_1790916424867.jpg',
+    publicUrl: BUNDLED_IMAGES.hero,
     mediaType: 'image/jpeg',
     altText: 'ARUNA senior advisor and business founder reviewing operational workflows',
     section: 'hero',
@@ -24,7 +25,7 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
     slug: 'industry-retail',
     description: 'Foto showcase industri retail & multi-store',
     storagePath: 'industries/industry_retail_store.jpg',
-    publicUrl: '/src/assets/images/industry_retail_store_1790916438753.jpg',
+    publicUrl: BUNDLED_IMAGES.retail,
     mediaType: 'image/jpeg',
     altText: 'Retail store operations and inventory control',
     section: 'industry',
@@ -38,7 +39,7 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
     slug: 'industry-fnb',
     description: 'Foto showcase operasional dapur & restoran F&B',
     storagePath: 'industries/industry_fb_operations.jpg',
-    publicUrl: '/src/assets/images/industry_fb_operations_1790916451581.jpg',
+    publicUrl: BUNDLED_IMAGES.fb,
     mediaType: 'image/jpeg',
     altText: 'F&B kitchen and centralized inventory management',
     section: 'industry',
@@ -52,7 +53,7 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
     slug: 'industry-hospitality',
     description: 'Foto showcase hotel boutique & resort hospitality',
     storagePath: 'industries/industry_hospitality.jpg',
-    publicUrl: '/src/assets/images/industry_hospitality_1790916463500.jpg',
+    publicUrl: BUNDLED_IMAGES.hospitality,
     mediaType: 'image/jpeg',
     altText: 'Hospitality operations and front office management',
     section: 'industry',
@@ -66,7 +67,7 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
     slug: 'founder-aruna',
     description: 'Foto profil Muhammad Nurcholish',
     storagePath: 'authors/author_nurcholish.jpg',
-    publicUrl: '/src/assets/images/author_nurcholish_1790919189982.jpg',
+    publicUrl: BUNDLED_IMAGES.authorNurcholish,
     mediaType: 'image/jpeg',
     altText: 'Muhammad Nurcholish Founder ARUNA',
     section: 'about',
@@ -77,6 +78,37 @@ export const INITIAL_SITE_MEDIA: SiteMedia[] = [
 ];
 
 export const MediaService = {
+  /**
+   * Helper: Resolve any relative storage path or URL to full public URL,
+   * with fallback to bundled image if unresolved.
+   */
+  resolveStorageUrl(pathOrUrl?: string | null, fallbackKey?: string): string {
+    if (!pathOrUrl) return getBundledFallback(fallbackKey);
+
+    const trimmed = pathOrUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('data:') || trimmed.startsWith('/assets/')) {
+      return trimmed;
+    }
+    if (trimmed.includes('/src/assets/')) {
+      return getBundledFallback(trimmed || fallbackKey);
+    }
+
+    // Relative storage path within Supabase Storage bucket 'aruna-media'
+    try {
+      const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(trimmed);
+      if (data?.publicUrl) {
+        return data.publicUrl;
+      }
+    } catch {
+      // Fallback
+    }
+
+    return getBundledFallback(fallbackKey || trimmed);
+  },
+
   /**
    * Fetch all registered site media from public.site_media table
    * Public visitors receive active=true media according to RLS
@@ -98,12 +130,19 @@ export const MediaService = {
 
       return data.map((d) => {
         let publicUrl = d.public_url;
-        // If public_url is relative storage path, construct full Supabase Storage public URL
-        if (!publicUrl.startsWith('http')) {
-          const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(d.storage_path);
-          if (urlData?.publicUrl) {
-            publicUrl = urlData.publicUrl;
+        // If public_url is relative storage path or contains legacy dev path, construct full Supabase Storage URL
+        if (!publicUrl || !publicUrl.startsWith('http') || publicUrl.includes('/src/assets/')) {
+          if (d.storage_path) {
+            const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(d.storage_path);
+            if (urlData?.publicUrl) {
+              publicUrl = urlData.publicUrl;
+            }
           }
+        }
+
+        // If publicUrl is still unresolved, provide safe bundled fallback
+        if (!publicUrl || publicUrl.includes('/src/assets/')) {
+          publicUrl = getBundledFallback(d.storage_path || d.slug);
         }
 
         return {
@@ -131,7 +170,11 @@ export const MediaService = {
    */
   async getMediaBySlug(slug: string): Promise<SiteMedia | null> {
     const list = await this.getAllMedia();
-    return list.find((m) => m.slug === slug && m.active) || null;
+    const found = list.find((m) => m.slug === slug && m.active);
+    if (found) return found;
+
+    const fallbackMatch = INITIAL_SITE_MEDIA.find((m) => m.slug === slug);
+    return fallbackMatch || null;
   },
 
   /**

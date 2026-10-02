@@ -3,6 +3,7 @@ import { X, Clock, Calendar, Share2, ArrowRight, Check, MessageSquare, User, Arr
 import { Article, Author, Language } from '../../types';
 import { ArticlesService } from '../../services/supabase/articlesService';
 import { AuthorsService } from '../../services/supabase/authorsService';
+import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 
 interface ArticleModalProps {
   article: Article | null;
@@ -212,8 +213,7 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
                   className="w-full h-full object-cover object-center"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    // Fallback to avatar placeholder
-                    (e.currentTarget as HTMLElement).style.display = 'none';
+                    (e.currentTarget as HTMLImageElement).src = BUNDLED_IMAGES.authorNurcholish;
                   }}
                 />
               </div>
@@ -240,7 +240,14 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
                   alt={article.title}
                   className="w-full h-full object-cover object-center"
                   referrerPolicy="no-referrer"
-                  onError={() => setImgError(true)}
+                  onError={(e) => {
+                    const fallback = getBundledFallback(article.slug || article.title);
+                    if ((e.currentTarget as HTMLImageElement).src !== fallback) {
+                      (e.currentTarget as HTMLImageElement).src = fallback;
+                    } else {
+                      setImgError(true);
+                    }
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-[#0B1F33] text-white p-6 text-center">

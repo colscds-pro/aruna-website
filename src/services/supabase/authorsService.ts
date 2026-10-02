@@ -1,6 +1,8 @@
 import { supabase, isSupabaseConfigured } from './client';
 import { Author } from '../../types';
 import { INITIAL_AUTHORS } from '../../data/initialArticles';
+import { MediaService } from './mediaService';
+import { BUNDLED_IMAGES } from '../../assets/bundledImages';
 
 export const AuthorsService = {
   /**
@@ -22,18 +24,24 @@ export const AuthorsService = {
         return onlyActive ? INITIAL_AUTHORS.filter((a) => a.active !== false) : INITIAL_AUTHORS;
       }
 
-      return data.map((d) => ({
-        id: d.id,
-        name: d.name,
-        slug: d.slug,
-        role: 'Author',
-        bio: d.bio,
-        photoUrl: d.avatar_url || '/src/assets/images/author_nurcholish_1790919189982.jpg',
-        avatarUrl: d.avatar_url,
-        active: d.active,
-        createdAt: d.created_at,
-        updatedAt: d.updated_at,
-      }));
+      return data.map((d) => {
+        const resolvedPhotoUrl = d.avatar_url
+          ? MediaService.resolveStorageUrl(d.avatar_url, 'author')
+          : BUNDLED_IMAGES.authorNurcholish;
+
+        return {
+          id: d.id,
+          name: d.name,
+          slug: d.slug,
+          role: 'Founder, ARUNA',
+          bio: d.bio,
+          photoUrl: resolvedPhotoUrl,
+          avatarUrl: d.avatar_url,
+          active: d.active,
+          createdAt: d.created_at,
+          updatedAt: d.updated_at,
+        };
+      });
     } catch {
       return onlyActive ? INITIAL_AUTHORS.filter((a) => a.active !== false) : INITIAL_AUTHORS;
     }
@@ -75,7 +83,9 @@ export const AuthorsService = {
           slug: data.slug,
           role: author.role || 'Author',
           bio: data.bio,
-          photoUrl: data.avatar_url || author.photoUrl,
+          photoUrl: data.avatar_url
+            ? MediaService.resolveStorageUrl(data.avatar_url, 'author')
+            : (author.photoUrl || BUNDLED_IMAGES.authorNurcholish),
           avatarUrl: data.avatar_url,
           active: data.active,
           createdAt: data.created_at,
