@@ -103,20 +103,31 @@ export const MediaService = {
         return section ? INITIAL_SITE_MEDIA.filter((m) => m.section === section) : INITIAL_SITE_MEDIA;
       }
 
-      return data.map((d) => ({
-        id: d.id,
-        name: d.name,
-        slug: d.slug,
-        description: d.description,
-        storagePath: d.storage_path,
-        publicUrl: d.public_url,
-        mediaType: d.media_type,
-        altText: d.alt_text,
-        section: d.section as MediaSection,
-        active: d.active,
-        createdAt: d.created_at,
-        updatedAt: d.updated_at,
-      }));
+      return data.map((d) => {
+        let publicUrl = d.public_url;
+        // If public_url is not an absolute HTTP URL, construct it from Supabase Storage
+        if (!publicUrl.startsWith('http')) {
+          const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(d.storage_path);
+          if (urlData?.publicUrl) {
+            publicUrl = urlData.publicUrl;
+          }
+        }
+
+        return {
+          id: d.id,
+          name: d.name,
+          slug: d.slug,
+          description: d.description,
+          storagePath: d.storage_path,
+          publicUrl,
+          mediaType: d.media_type,
+          altText: d.alt_text,
+          section: d.section as MediaSection,
+          active: d.active,
+          createdAt: d.created_at,
+          updatedAt: d.updated_at,
+        };
+      });
     } catch {
       return section ? INITIAL_SITE_MEDIA.filter((m) => m.section === section) : INITIAL_SITE_MEDIA;
     }

@@ -96,13 +96,14 @@ export const MigrationService = {
 
       for (const auth of authorsToMigrate) {
         const slug = auth.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const avatarPath = auth.avatarUrl || `authors/author_${slug}.jpg`;
         const { data, error } = await supabase
           .from('authors')
           .upsert({
             name: auth.name,
             slug,
             bio: auth.bio,
-            avatar_url: auth.photoUrl,
+            avatar_url: avatarPath,
             active: true,
           }, { onConflict: 'slug' })
           .select('id')
@@ -161,6 +162,9 @@ export const MigrationService = {
 
       // 4. Migrate Site Media
       for (const med of INITIAL_SITE_MEDIA) {
+        const { data: urlData } = supabase.storage.from('aruna-media').getPublicUrl(med.storagePath);
+        const resolvedUrl = urlData?.publicUrl || med.storagePath;
+
         const { error } = await supabase
           .from('site_media')
           .upsert({
@@ -168,7 +172,7 @@ export const MigrationService = {
             slug: med.slug,
             description: med.description,
             storage_path: med.storagePath,
-            public_url: med.publicUrl,
+            public_url: resolvedUrl,
             media_type: med.mediaType,
             alt_text: med.altText,
             section: med.section,
