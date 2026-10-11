@@ -113,6 +113,41 @@ export const ArticlesService = {
   },
 
   /**
+   * Get single published article by slug for public detail page
+   * Ensures draft/unpublished articles are never leaked or accessed by public visitors.
+   */
+  async getPublishedArticleBySlug(slug: string): Promise<Article | null> {
+    if (!isSupabaseConfigured) {
+      const all = await this.getPublishedArticles();
+      return all.find((a) => a.slug === slug && a.status === 'published') || null;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .select(`
+          *,
+          author:authors(*),
+          category:categories(*)
+        `)
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .maybeSingle();
+
+      if (error || !data) {
+        // Fallback to in-memory initial articles (only published)
+        const all = await this.getPublishedArticles();
+        return all.find((a) => a.slug === slug && a.status === 'published') || null;
+      }
+
+      return this.mapDbArticleToModel(data);
+    } catch {
+      const all = await this.getPublishedArticles();
+      return all.find((a) => a.slug === slug && a.status === 'published') || null;
+    }
+  },
+
+  /**
    * Get single article by slug from public.articles
    */
   async getArticleBySlug(slug: string): Promise<Article | null> {
@@ -155,13 +190,21 @@ export const ArticlesService = {
   },
 
   /**
-   * Get all articles by author
+   * Get all published articles by author (by id or slug)
    */
-  async getAuthorArticles(authorId: string): Promise<Article[]> {
+  async getAuthorArticles(authorIdOrSlug: string): Promise<Article[]> {
     const published = await this.getPublishedArticles();
-    return published.filter(
-      (a) => a.authorId === authorId || a.author?.id === authorId || a.author?.slug === authorId
-    );
+    const cleanKey = authorIdOrSlug.toLowerCase();
+    return published.filter((a) => {
+      if (a.authorId?.toLowerCase() === cleanKey) return true;
+      if (a.author?.id?.toLowerCase() === cleanKey) return true;
+      if (a.author?.slug?.toLowerCase() === cleanKey) return true;
+      if (a.author?.name) {
+        const slugified = a.author.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        if (slugified === cleanKey) return true;
+      }
+      return false;
+    });
   },
 
   /**
@@ -347,8 +390,12 @@ export const ArticlesService = {
             id: authorData.id,
             name: authorData.name,
             slug: authorData.slug,
-            role: 'Founder, ARUNA',
-            bio: authorData.bio,
+            role: authorData.role
+              ? authorData.role.replace(/founder/gi, 'Penulis')
+              : 'Penulis & Kontributor',
+            bio: (authorData.bio || '')
+              .replace(/Founder ARUNA\.\s*/gi, '')
+              .replace(/\bFounder,\s*ARUNA\b/gi, ''),
             photoUrl: resolvedAuthorPhoto,
             avatarUrl: authorData.avatar_url,
           }

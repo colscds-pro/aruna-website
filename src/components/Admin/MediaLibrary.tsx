@@ -36,7 +36,7 @@ export const MediaLibrary: React.FC = () => {
     { id: 'industry', label: 'Industri' },
     { id: 'case-study', label: 'Studi Kasus' },
     { id: 'insights', label: 'Insights & Cover' },
-    { id: 'about', label: 'Penulis & Founder' },
+    { id: 'about', label: 'Penulis & Kontributor' },
     { id: 'general', label: 'Umum' },
   ];
 
@@ -345,7 +345,7 @@ export const MediaLibrary: React.FC = () => {
                   <option value="industry">Industri</option>
                   <option value="case-study">Studi Kasus</option>
                   <option value="insights">Insights & Cover</option>
-                  <option value="about">Tentang / Founder</option>
+                  <option value="about">Tentang / Penulis</option>
                   <option value="general">Umum</option>
                 </select>
               </div>

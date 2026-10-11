@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, MessageSquare, Mail, Phone, MapPin, Lock } from 'lucide-react';
+import { ArrowUpRight, MessageSquare, Mail, Phone, MapPin, Lock, Instagram } from 'lucide-react';
 import { Language } from '../types';
 import { CONTENT } from '../data/content';
 import { ArunaLogo } from './ArunaLogo';
@@ -43,32 +43,32 @@ export const Footer: React.FC<FooterProps> = ({
             </span>
             <ul className="space-y-2.5 text-xs text-white/80">
               <li>
-                <a href="#services" className="hover:text-white transition-colors">
+                <a href="/#services" className="hover:text-white transition-colors">
                   {lang === 'id' ? 'Layanan' : 'Services'}
                 </a>
               </li>
               <li>
-                <a href="#industries" className="hover:text-white transition-colors">
+                <a href="/#industries" className="hover:text-white transition-colors">
                   {lang === 'id' ? 'Industri' : 'Industries'}
                 </a>
               </li>
               <li>
-                <a href="#how-we-work" className="hover:text-white transition-colors">
+                <a href="/#how-we-work" className="hover:text-white transition-colors">
                   {lang === 'id' ? 'Cara Kerja' : 'How We Work'}
                 </a>
               </li>
               <li>
-                <a href="#insights" className="hover:text-white transition-colors">
+                <a href="/insights" className="hover:text-white transition-colors">
                   Insights
                 </a>
               </li>
               <li>
-                <a href="#about-aruna" className="hover:text-white transition-colors">
+                <a href="/#about-aruna" className="hover:text-white transition-colors">
                   {lang === 'id' ? 'Tentang ARUNA' : 'About ARUNA'}
                 </a>
               </li>
               <li>
-                <a href="#diagnostic" className="hover:text-white transition-colors">
+                <a href="/#diagnostic" className="hover:text-white transition-colors">
                   Self-Diagnostic
                 </a>
               </li>
@@ -87,13 +87,31 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
               <div className="flex items-start gap-2.5">
                 <Mail className="w-3.5 h-3.5 text-[#B59A5A] shrink-0 mt-0.5" />
-                <a href={`mailto:${t.email}`} className="hover:text-white transition-colors">
+                <a href={`mailto:${t.email}`} className="hover:text-[#B59A5A] transition-colors">
                   {t.email}
                 </a>
               </div>
               <div className="flex items-start gap-2.5">
                 <Phone className="w-3.5 h-3.5 text-[#B59A5A] shrink-0 mt-0.5" />
-                <span>{t.phone}</span>
+                <a
+                  href={`https://wa.me/6289638402869`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#B59A5A] transition-colors"
+                >
+                  {t.phone} (WhatsApp)
+                </a>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Instagram className="w-3.5 h-3.5 text-[#B59A5A] shrink-0 mt-0.5" />
+                <a
+                  href="https://www.instagram.com/arunaconsult/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#B59A5A] transition-colors"
+                >
+                  @arunaconsult
+                </a>
               </div>
               <div className="flex items-start gap-2.5 pt-1">
                 <MessageSquare className="w-3.5 h-3.5 text-[#B59A5A] shrink-0 mt-0.5" />

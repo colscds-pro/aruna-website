@@ -8,6 +8,7 @@ interface NavbarProps {
   onLanguageChange: (lang: Language) => void;
   onOpenConsultation: () => void;
   onOpenCms?: () => void;
+  onNavigate?: (path: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -15,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLanguageChange,
   onOpenConsultation,
   onOpenCms,
+  onNavigate,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,14 +29,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Simplified public navigation according to Prompt #3 Section 12
+  // Simplified public navigation
   const navLinks = [
-    { label: lang === 'id' ? 'Layanan' : 'Services', href: '#services' },
-    { label: lang === 'id' ? 'Industri' : 'Industries', href: '#industries' },
-    { label: lang === 'id' ? 'Cara Kerja' : 'How We Work', href: '#how-we-work' },
-    { label: 'Insights', href: '#insights' },
-    { label: lang === 'id' ? 'Tentang ARUNA' : 'About ARUNA', href: '#about-aruna' },
-    { label: 'Self-Diagnostic', href: '#diagnostic' },
+    { label: lang === 'id' ? 'Layanan' : 'Services', href: '/#services' },
+    { label: lang === 'id' ? 'Industri' : 'Industries', href: '/#industries' },
+    { label: lang === 'id' ? 'Cara Kerja' : 'How We Work', href: '/#how-we-work' },
+    { label: 'Insights', href: '/#insights' },
+    { label: lang === 'id' ? 'Tentang ARUNA' : 'About ARUNA', href: '/#about-aruna' },
+    { label: 'Self-Diagnostic', href: '/#diagnostic' },
   ];
 
   return (
@@ -49,8 +51,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Zone 1: Pure, clean ARUNA Logo */}
           <a
-            href="#"
-            className="hover:opacity-90 transition-opacity"
+            href="/"
+            onClick={(e) => {
+              if (onNavigate) {
+                e.preventDefault();
+                onNavigate('/');
+              }
+            }}
+            className="hover:opacity-90 transition-opacity cursor-pointer"
             aria-label="ARUNA Homepage"
           >
             <ArunaLogo variant="horizontal" color="navy" size="md" />
@@ -62,7 +70,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <a
                 key={link.href}
                 href={link.href}
-                className="hover:text-[#0B1F33] transition-colors py-1 relative group"
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate(link.href);
+                  }
+                }}
+                className="hover:text-[#0B1F33] transition-colors py-1 relative group cursor-pointer"
               >
                 <span>{link.label}</span>
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0B1F33] transition-all duration-200 group-hover:w-full" />
@@ -131,8 +145,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2 border-b border-[#EAECF0] hover:text-[#B59A5A] transition-colors"
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate(link.href);
+                  }
+                }}
+                className="py-2 border-b border-[#EAECF0] hover:text-[#B59A5A] transition-colors cursor-pointer"
               >
                 {link.label}
               </a>

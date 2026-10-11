@@ -48,7 +48,7 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
-      const url = `${window.location.origin}/#insight-${article.slug}`;
+      const url = `${window.location.origin}/insights/${article.slug}`;
       navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

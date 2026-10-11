@@ -5,8 +5,9 @@ export const INITIAL_AUTHORS: Author[] = [
   {
     id: 'muhammad-nurcholish',
     name: 'Muhammad Nurcholish',
-    role: 'Founder, ARUNA',
-    bio: 'Founder ARUNA. Praktisi transformasi bisnis dan implementasi ERP untuk industri retail, F&B, dan hospitality di Indonesia. Berfokus membantu para pemilik bisnis membangun struktur operasional yang masuk akal sebelum menyentuh konfigurasi sistem teknologi.',
+    slug: 'muhammad-nurcholish',
+    role: 'Penulis & Praktisi Operasional',
+    bio: 'Praktisi transformasi bisnis dan implementasi ERP untuk industri retail, F&B, dan hospitality di Indonesia. Berfokus membantu para pemilik bisnis membangun struktur operasional yang masuk akal sebelum menyentuh konfigurasi sistem teknologi.',
     photoUrl: BUNDLED_IMAGES.authorNurcholish,
     avatarUrl: 'authors/author_nurcholish.jpg',
   },

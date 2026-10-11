@@ -522,9 +522,11 @@ export const CONTENT = {
       contactHeading: 'Hubungi Kami',
       office: 'Jakarta, Indonesia',
       workingHours: 'Senin – Jumat | 09:00 – 18:00 WIB',
-      email: 'advisory@aruna-consulting.id',
-      phone: '+62 812-8800-4560',
-      whatsapp: 'https://wa.me/6281288004560?text=Halo%20ARUNA,%20saya%20ingin%20berkonsultasi%20mengenai%20kesiapan%20proses%20bisnis%20dan%20sistem%20ERP%20kami.',
+      email: 'arunayourlife@gmail.com',
+      phone: '089638402869',
+      whatsapp: 'https://wa.me/6289638402869?text=Halo%20ARUNA,%20saya%20ingin%20berkonsultasi%20mengenai%20kesiapan%20proses%20bisnis%20dan%20sistem%20ERP%20kami.',
+      instagram: '@arunaconsult',
+      instagramUrl: 'https://www.instagram.com/arunaconsult/',
       quickLinksHeading: 'Navigasi',
       legalHeading: 'Prinsip Integritas',
       disclaimer: 'ARUNA berkomitmen pada kejujuran kapabilitas: kami menyajikan bukti kerja riil tanpa fabrikasi statistik atau testimoni semu. Odoo adalah merek dagang terdaftar milik Odoo S.A.',
@@ -783,7 +785,7 @@ export const CONTENT = {
         {
           stage: 'Stage 01',
           name: 'UNDERSTAND',
-          description: 'Listening to the founder’s vision, daily operational hurdles, and future multi-outlet plans.',
+          description: 'Listening to the business owner’s vision, daily operational hurdles, and future multi-outlet plans.',
           action: 'Deep-dive interviews with owners and operational leads.',
           output: 'Contextual briefing document and core priorities.'
         },
@@ -1025,7 +1027,7 @@ export const CONTENT = {
           'The owner lacked confidence in the true valuation of inventory held across store shelves and warehouse storage.',
           'Accounts Payable to suppliers relied on scattered paper invoices and personal memories of purchasing clerks.',
           'Store customer receivables could not be reliably reconciled against incoming bank account transfers.',
-          'The founder felt severe anxiety about launching a second outlet while the original unit remained heavily dependent on key individuals.'
+          'The business owner felt severe anxiety about launching a second outlet while the original unit remained heavily dependent on key individuals.'
         ]
       },
       intervention: {
@@ -1064,13 +1066,15 @@ export const CONTENT = {
       brand: 'ARUNA',
       category: 'ERP Consulting & Business Transformation',
       tagline: 'MAKE BUSINESS MAKE SENSE.',
-      description: 'A dedicated business transformation partner helping retail, F&B, and hospitality founders establish structured operations and fit-for-purpose ERP systems.',
+      description: 'A dedicated business transformation partner helping retail, F&B, and hospitality business owners establish structured operations and fit-for-purpose ERP systems.',
       contactHeading: 'Get in Touch',
       office: 'Jakarta, Indonesia',
       workingHours: 'Monday – Friday | 09:00 – 18:00 WIB',
-      email: 'advisory@aruna-consulting.id',
-      phone: '+62 812-8800-4560',
-      whatsapp: 'https://wa.me/6281288004560?text=Hello%20ARUNA,%20I%20would%20like%20to%20consult%20about%20our%20business%20process%20and%20ERP%20readiness.',
+      email: 'arunayourlife@gmail.com',
+      phone: '089638402869',
+      whatsapp: 'https://wa.me/6289638402869?text=Hello%20ARUNA,%20I%20would%20like%20to%20consult%20about%20our%20business%20process%20and%20ERP%20readiness.',
+      instagram: '@arunaconsult',
+      instagramUrl: 'https://www.instagram.com/arunaconsult/',
       quickLinksHeading: 'Navigation',
       legalHeading: 'Integrity Principles',
       disclaimer: 'ARUNA is grounded in capability honesty: we showcase real operational engagements without artificial metrics or vanity testimonials. Odoo is a registered trademark of Odoo S.A.',

@@ -19,6 +19,9 @@ import { ArticleModal } from './components/Insights/ArticleModal';
 import { AuthorModal } from './components/Insights/AuthorModal';
 import { AdminCmsModal } from './components/Insights/AdminCmsModal';
 import { AdminPortal } from './components/Admin/AdminPortal';
+import { ArticleDetailPage } from './components/Insights/ArticleDetailPage';
+import { InsightsListingPage } from './components/Insights/InsightsListingPage';
+import { AuthorArchivePage } from './components/Insights/AuthorArchivePage';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('id');
@@ -37,8 +40,38 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Smooth scroll to anchor if present in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const targetId = window.location.hash.replace('#', '');
+      const element = document.getElementById(targetId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+    }
+  }, [currentPath]);
+
   const navigateTo = (path: string) => {
     if (typeof window !== 'undefined') {
+      // Support anchor navigation e.g. /#insights
+      if (path.startsWith('/#')) {
+        const hash = path.substring(1);
+        window.history.pushState({}, '', '/');
+        setCurrentPath('/');
+        const id = hash.replace('#', '');
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }, 50);
+        return;
+      }
+
       window.history.pushState({}, '', path);
       setCurrentPath(path);
       window.scrollTo(0, 0);
@@ -60,7 +93,13 @@ export default function App() {
   };
 
   const handleSelectArticle = (article: Article) => {
-    setSelectedArticle(article);
+    if (currentPath === '/admin') {
+      // CMS admin preview in modal
+      setSelectedArticle(article);
+    } else {
+      // Dedicated Article Detail Page per Requirement #3
+      navigateTo(`/insights/${article.slug}`);
+    }
   };
 
   const handleCloseArticle = () => {
@@ -68,7 +107,7 @@ export default function App() {
   };
 
   const handleSelectAuthor = (authorId: string) => {
-    setSelectedAuthorId(authorId);
+    navigateTo(`/authors/${authorId}`);
   };
 
   const handleCloseAuthor = () => {
@@ -81,20 +120,20 @@ export default function App() {
 
   const handleCloseCms = () => {
     setIsCmsModalOpen(false);
-    if (currentPath === '/admin') {
+    if (currentPath === '/admin' || currentPath === '/admin/') {
       navigateTo('/');
     }
   };
 
-  // Route /admin -> render secure Admin Portal
-  if (currentPath === '/admin') {
+  // Route 1: /admin -> render secure Admin Portal
+  if (currentPath === '/admin' || currentPath === '/admin/') {
     return (
       <>
         <AdminPortal
           onBackToWebsite={() => navigateTo('/')}
           onPreviewArticle={handleSelectArticle}
         />
-        {/* Editorial Article Reader Modal for previewing articles from CMS */}
+        {/* Editorial Article Reader Modal for previewing draft/published articles from CMS */}
         <ArticleModal
           article={selectedArticle}
           isOpen={Boolean(selectedArticle)}
@@ -108,6 +147,51 @@ export default function App() {
     );
   }
 
+  // Route 2: /insights -> Dedicated Insights Listing Page per Requirement #3
+  if (currentPath === '/insights' || currentPath === '/insights/') {
+    return (
+      <InsightsListingPage
+        lang={lang}
+        onLanguageChange={setLang}
+        onNavigate={navigateTo}
+        onOpenCms={handleOpenCms}
+      />
+    );
+  }
+
+  // Route 3: /insights/:slug -> dedicated full Article Detail Page per Requirement #4
+  const insightsMatch = currentPath.match(/^\/insights\/([a-zA-Z0-9_-]+)\/?$/);
+  const articleSlug = insightsMatch ? insightsMatch[1] : null;
+
+  if (articleSlug && articleSlug !== 'insights') {
+    return (
+      <ArticleDetailPage
+        slug={articleSlug}
+        lang={lang}
+        onLanguageChange={setLang}
+        onNavigate={navigateTo}
+        onOpenCms={handleOpenCms}
+      />
+    );
+  }
+
+  // Route 4: /authors/:slug -> dedicated Author Archive Page per Requirement #5
+  const authorMatch = currentPath.match(/^\/authors\/([a-zA-Z0-9_-]+)\/?$/);
+  const authorSlug = authorMatch ? authorMatch[1] : null;
+
+  if (authorSlug) {
+    return (
+      <AuthorArchivePage
+        slug={authorSlug}
+        lang={lang}
+        onLanguageChange={setLang}
+        onNavigate={navigateTo}
+        onOpenCms={handleOpenCms}
+      />
+    );
+  }
+
+  // Route 5: Homepage
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFFFF] text-[#0B1F33]">
       {/* Top Bar with Official ARUNA Logo */}
@@ -116,9 +200,10 @@ export default function App() {
         onLanguageChange={setLang}
         onOpenConsultation={handleOpenConsultation}
         onOpenCms={handleOpenCms}
+        onNavigate={navigateTo}
       />
 
-      {/* Main Narrative Sequence per Prompt #4 */}
+      {/* Main Narrative Sequence */}
       <main className="flex-1">
         {/* Section 1: Hero */}
         <Hero lang={lang} onOpenConsultation={handleOpenConsultation} />
@@ -126,28 +211,28 @@ export default function App() {
         {/* Section 2: The Growth Moment (1 Outlet -> 2 Outlets -> Multi-Outlet) */}
         <GrowthMoment lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 3: Recognition / Symptoms (Apakah bisnis Anda mulai terasa sulit dikontrol?) */}
+        {/* Section 3: Recognition / Symptoms */}
         <SymptomsSection lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 4: The ARUNA Point of View (We start with the business. Not the software.) */}
+        {/* Section 4: The ARUNA Point of View */}
         <Philosophy lang={lang} />
 
-        {/* Section 5: The Four ARUNA Principles (Clarity -> Structure -> Control -> Growth) */}
+        {/* Section 5: The Four ARUNA Principles */}
         <TransformationJourney lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 6: How ARUNA Works (Operational Flow: Discover -> Go Live) */}
+        {/* Section 6: How ARUNA Works */}
         <Methodology lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 7: Services (ERP Implementation, Odoo Migration, Business Process Advisory) */}
+        {/* Section 7: Services */}
         <Services lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 8: Industries (Retail, F&B, Hospitality) */}
+        {/* Section 8: Industries */}
         <Industries lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 9: Case Studies / Proof (Real unhyped ongoing retail case) */}
+        {/* Section 9: Case Studies / Proof */}
         <CaseStudy lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 10: Insights (Highlighted editorial thought leadership) */}
+        {/* Section 10: Insights (Refined with dedicated article detail routing) */}
         <InsightsSection
           lang={lang}
           onSelectArticle={handleSelectArticle}
@@ -156,14 +241,14 @@ export default function App() {
           onOpenCms={handleOpenCms}
         />
 
-        {/* Section 11: Self-Diagnostic (Apakah bisnis Anda sudah siap untuk berkembang?) */}
+        {/* Section 11: Self-Diagnostic */}
         <DiagnosticTool lang={lang} onOpenConsultation={handleOpenConsultation} />
 
-        {/* Section 12: Final CTA (Siap memahami bisnis Anda lebih jelas?) */}
+        {/* Section 12: Final CTA */}
         <CtaSection lang={lang} onOpenConsultation={handleOpenConsultation} />
       </main>
 
-      {/* Footer with Official ARUNA Logo */}
+      {/* Footer with Official Contact Info & Instagram */}
       <Footer
         lang={lang}
         onOpenConsultation={handleOpenConsultation}
@@ -175,17 +260,6 @@ export default function App() {
         isOpen={isConsultModalOpen}
         onClose={handleCloseConsultation}
         lang={lang}
-      />
-
-      {/* Editorial Article Reader Modal */}
-      <ArticleModal
-        article={selectedArticle}
-        isOpen={Boolean(selectedArticle)}
-        onClose={handleCloseArticle}
-        lang={lang}
-        onOpenConsultation={handleOpenConsultation}
-        onSelectArticle={handleSelectArticle}
-        onSelectAuthor={handleSelectAuthor}
       />
 
       {/* Author Profile Modal */}

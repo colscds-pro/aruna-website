@@ -223,7 +223,7 @@ export const DiagnosticTool: React.FC<DiagnosticToolProps> = ({
             {/* Direct Connect Options */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <a
-                href={`https://wa.me/6281288004560?text=${whatsappMessage}`}
+                href={`https://wa.me/6289638402869?text=${whatsappMessage}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-xs sm:text-sm font-semibold text-white bg-[#0B1F33] hover:bg-[#132D47] rounded-md transition-colors whitespace-nowrap"

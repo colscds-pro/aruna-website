@@ -29,12 +29,17 @@ export const AuthorsService = {
           ? MediaService.resolveStorageUrl(d.avatar_url, 'author')
           : BUNDLED_IMAGES.authorNurcholish;
 
+        const cleanBio = (d.bio || '').replace(/Founder ARUNA\.\s*/gi, '').replace(/\bFounder,\s*ARUNA\b/gi, '');
+        const cleanRole = d.role
+          ? d.role.replace(/founder/gi, 'Penulis')
+          : 'Penulis & Kontributor';
+
         return {
           id: d.id,
           name: d.name,
           slug: d.slug,
-          role: 'Founder, ARUNA',
-          bio: d.bio,
+          role: cleanRole,
+          bio: cleanBio,
           photoUrl: resolvedPhotoUrl,
           avatarUrl: d.avatar_url,
           active: d.active,
@@ -50,6 +55,18 @@ export const AuthorsService = {
   async getAuthorById(id: string): Promise<Author | null> {
     const list = await this.getAuthors(false);
     return list.find((a) => a.id === id || a.slug === id) || null;
+  },
+
+  async getAuthorBySlug(slug: string): Promise<Author | null> {
+    const list = await this.getAuthors(false);
+    return (
+      list.find(
+        (a) =>
+          a.slug === slug ||
+          a.id === slug ||
+          (a.name && a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug)
+      ) || null
+    );
   },
 
   /**

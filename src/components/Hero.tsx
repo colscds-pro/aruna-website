@@ -77,7 +77,7 @@ export const Hero: React.FC<HeroProps> = ({ lang, onOpenConsultation }) => {
             {!imageError ? (
               <img
                 src={imgSrc}
-                alt="ARUNA senior advisor and business founder reviewing operational workflows"
+                alt="ARUNA senior advisor and business owner reviewing operational workflows"
                 className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-[1.01]"
                 referrerPolicy="no-referrer"
                 onError={handleImageError}
