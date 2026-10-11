@@ -28,6 +28,7 @@ import { ArticlesService, slugifyTitle, estimateReadingTime } from '../../servic
 import { AuthorsService } from '../../services/supabase/authorsService';
 import { CategoriesService } from '../../services/supabase/categoriesService';
 import { MediaService } from '../../services/supabase/mediaService';
+import { ImageUploadOptimizerModal } from './ImageUploadOptimizerModal';
 
 interface ArticleEditorProps {
   articleId?: string | null;
@@ -60,6 +61,10 @@ export const ArticleEditor: React.FC<ArticleEditorProps> = ({ articleId, onBack,
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Optimizer Modal state
+  const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
+  const [coverFileToOptimize, setCoverFileToOptimize] = useState<File | null>(null);
 
   useEffect(() => {
     async function loadInitial() {
@@ -136,30 +141,14 @@ export const ArticleEditor: React.FC<ArticleEditorProps> = ({ articleId, onBack,
     }, 10);
   };
 
-  // Image Upload handler
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image Upload handler (Automatic Compression via Optimizer Modal)
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploadingImage(true);
-    try {
-      const { publicUrl, error } = await MediaService.uploadMedia(file, 'insights', {
-        name: `Cover: ${title || file.name}`,
-        altText: coverAltText || title,
-        section: 'insights',
-      });
-
-      if (error) {
-        setNotification({ type: 'error', message: `Gagal mengunggah foto: ${error.message}` });
-      } else if (publicUrl) {
-        setCoverImageUrl(publicUrl);
-        setNotification({ type: 'success', message: 'Foto sampul berhasil diunggah.' });
-      }
-    } catch (err: any) {
-      setNotification({ type: 'error', message: err.message || 'Gagal mengunggah foto.' });
-    } finally {
-      setIsUploadingImage(false);
-    }
+    setCoverFileToOptimize(file);
+    setIsOptimizerOpen(true);
+    e.target.value = '';
   };
 
   // Save handler
@@ -580,6 +569,30 @@ export const ArticleEditor: React.FC<ArticleEditorProps> = ({ articleId, onBack,
           </div>
         </div>
       )}
+
+      {/* Automatic Image Upload Optimizer Modal */}
+      <ImageUploadOptimizerModal
+        isOpen={isOptimizerOpen}
+        onClose={() => {
+          setIsOptimizerOpen(false);
+          setCoverFileToOptimize(null);
+        }}
+        initialFile={coverFileToOptimize}
+        defaultPreset="thumbnail"
+        folder="insights"
+        section="insights"
+        metadata={{
+          name: `Cover: ${title || 'Artikel'}`,
+          altText: coverAltText || title,
+        }}
+        onSuccess={(url) => {
+          setCoverImageUrl(url);
+          setNotification({
+            type: 'success',
+            message: 'Foto sampul berhasil dioptimalkan dan diunggah ke Supabase Storage (aruna-media).',
+          });
+        }}
+      />
     </div>
   );
 };

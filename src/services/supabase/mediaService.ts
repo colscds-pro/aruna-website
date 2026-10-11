@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './client';
 import { SiteMedia, MediaSection } from '../../types';
 import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
+import { ImageOptimizerService, ImagePreset } from '../imageOptimization';
 
 const BUCKET_NAME = 'aruna-media';
 
@@ -179,6 +180,7 @@ export const MediaService = {
 
   /**
    * Upload image file to Supabase Storage bucket 'aruna-media' and register in site_media table
+   * Automatically compresses and optimizes images according to context/preset before upload.
    */
   async uploadMedia(
     file: File,
@@ -189,6 +191,8 @@ export const MediaService = {
       description?: string;
       altText?: string;
       section?: MediaSection;
+      preset?: ImagePreset;
+      skipOptimization?: boolean;
     } = {}
   ): Promise<{ media: SiteMedia | null; publicUrl: string; error: Error | null }> {
     // Validate file type
@@ -197,12 +201,34 @@ export const MediaService = {
       return { media: null, publicUrl: '', error: new Error('Format file tidak didukung. Gunakan JPG, PNG, atau WEBP.') };
     }
 
-    // Validate size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Determine preset
+    const folderPresetMap: Record<string, ImagePreset> = {
+      homepage: 'hero',
+      industries: 'thumbnail',
+      insights: 'thumbnail',
+      authors: 'avatar',
+      'case-studies': 'thumbnail',
+      general: 'general',
+    };
+    const presetToUse = metadata.preset || folderPresetMap[folder] || 'general';
+
+    // Run automatic optimization unless explicitly skipped or SVG
+    let fileToUpload = file;
+    if (!metadata.skipOptimization && file.type !== 'image/svg+xml') {
+      try {
+        const opt = await ImageOptimizerService.optimizeImage(file, presetToUse);
+        fileToUpload = opt.file;
+      } catch (optErr) {
+        console.warn('Image optimization encountered non-fatal error, proceeding with original file:', optErr);
+      }
+    }
+
+    // Validate size after optimization (max 5MB)
+    if (fileToUpload.size > 5 * 1024 * 1024) {
       return { media: null, publicUrl: '', error: new Error('Ukuran file maksimal adalah 5MB.') };
     }
 
-    const cleanFilename = file.name
+    const cleanFilename = fileToUpload.name
       .toLowerCase()
       .replace(/[^a-z0-9.]+/g, '-')
       .replace(/(^-|-$)/g, '');
@@ -217,7 +243,7 @@ export const MediaService = {
       // 1. Upload to Supabase Storage bucket 'aruna-media'
       const { error: uploadError } = await supabase.storage
         .from(BUCKET_NAME)
-        .upload(storagePath, file, {
+        .upload(storagePath, fileToUpload, {
           cacheControl: '3600',
           upsert: true,
         });
@@ -235,12 +261,12 @@ export const MediaService = {
       const { data: recordData, error: dbError } = await supabase
         .from('site_media')
         .insert({
-          name: metadata.name || file.name.split('.')[0],
+          name: metadata.name || fileToUpload.name.split('.')[0],
           slug: autoSlug,
           description: metadata.description || null,
           storage_path: storagePath,
           public_url: publicUrl,
-          media_type: file.type,
+          media_type: fileToUpload.type,
           alt_text: metadata.altText || metadata.name || null,
           section: metadata.section || 'general',
           active: true,

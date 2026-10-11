@@ -1,7 +1,29 @@
 {
   "rewrites": [
     {
-      "source": "/((?!assets/|favicon\\.svg|.*\\.[\\w]+$).*)",
+      "source": "/insights/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|TelegramBot|Slackbot).*"
+        }
+      ],
+      "destination": "/api/og?slug=:slug&type=insight"
+    },
+    {
+      "source": "/authors/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|TelegramBot|Slackbot).*"
+        }
+      ],
+      "destination": "/api/og?author=:slug&type=author"
+    },
+    {
+      "source": "/((?!assets/|favicon\\.svg|og-.*\\.jpg|.*\\.[\\w]+$).*)",
       "destination": "/index.html"
     }
   ]

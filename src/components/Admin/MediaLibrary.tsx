@@ -11,10 +11,13 @@ import {
   Folder,
   Tag,
   Eye,
-  Info
+  Info,
+  Sparkles,
 } from 'lucide-react';
 import { SiteMedia, MediaSection } from '../../types';
 import { MediaService } from '../../services/supabase/mediaService';
+import { ImageUploadOptimizerModal } from './ImageUploadOptimizerModal';
+import { ImagePreset } from '../../services/imageOptimization';
 
 export const MediaLibrary: React.FC = () => {
   const [mediaList, setMediaList] = useState<SiteMedia[]>([]);
@@ -30,6 +33,10 @@ export const MediaLibrary: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Automatic Image Compression & Optimizer Modal
+  const [optimizerModalOpen, setOptimizerModalOpen] = useState(false);
+  const [fileToOptimize, setFileToOptimize] = useState<File | null>(null);
+
   const sections: { id: MediaSection | 'all'; label: string }[] = [
     { id: 'all', label: 'Semua Media' },
     { id: 'hero', label: 'Hero Homepage' },
@@ -39,6 +46,23 @@ export const MediaLibrary: React.FC = () => {
     { id: 'about', label: 'Penulis & Kontributor' },
     { id: 'general', label: 'Umum' },
   ];
+
+  const getPresetForSection = (sec: string): ImagePreset => {
+    if (sec === 'hero') return 'hero';
+    if (sec === 'insights') return 'thumbnail';
+    if (sec === 'about') return 'avatar';
+    if (sec === 'industry') return 'thumbnail';
+    return 'general';
+  };
+
+  const getFolderForSection = (sec: string): 'insights' | 'authors' | 'homepage' | 'industries' | 'case-studies' | 'general' => {
+    if (sec === 'hero') return 'homepage';
+    if (sec === 'industry') return 'industries';
+    if (sec === 'case-study') return 'case-studies';
+    if (sec === 'insights') return 'insights';
+    if (sec === 'about') return 'authors';
+    return 'general';
+  };
 
   const loadMedia = async () => {
     setIsLoading(true);
@@ -56,45 +80,13 @@ export const MediaLibrary: React.FC = () => {
     loadMedia();
   }, [selectedSection]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setIsUploading(true);
-    setNotification(null);
-
-    const folderMap: Record<string, any> = {
-      hero: 'homepage',
-      industry: 'industries',
-      'case-study': 'case-studies',
-      insights: 'insights',
-      about: 'authors',
-      general: 'general',
-      all: 'general',
-    };
-    const targetFolder = folderMap[selectedSection] || 'general';
-
-    try {
-      let uploadedCount = 0;
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const { error } = await MediaService.uploadMedia(file, targetFolder, {
-          name: file.name.split('.')[0],
-          section: selectedSection === 'all' ? 'general' : selectedSection,
-        });
-        if (!error) uploadedCount++;
-      }
-
-      setNotification({
-        type: 'success',
-        message: `${uploadedCount} foto berhasil diunggah ke Supabase Storage (aruna-media).`,
-      });
-      await loadMedia();
-    } catch (err: any) {
-      setNotification({ type: 'error', message: err.message || 'Gagal mengunggah foto.' });
-    } finally {
-      setIsUploading(false);
-    }
+    setFileToOptimize(file);
+    setOptimizerModalOpen(true);
+    e.target.value = '';
   };
 
   const handleStartDelete = async (media: SiteMedia) => {
@@ -449,6 +441,26 @@ export const MediaLibrary: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Automatic Image Upload Optimizer Modal */}
+      <ImageUploadOptimizerModal
+        isOpen={optimizerModalOpen}
+        onClose={() => {
+          setOptimizerModalOpen(false);
+          setFileToOptimize(null);
+        }}
+        initialFile={fileToOptimize}
+        defaultPreset={getPresetForSection(selectedSection)}
+        folder={getFolderForSection(selectedSection)}
+        section={selectedSection === 'all' ? 'general' : selectedSection}
+        onSuccess={async (url) => {
+          setNotification({
+            type: 'success',
+            message: 'Foto berhasil dioptimalkan dan diunggah ke Supabase Storage (aruna-media).',
+          });
+          await loadMedia();
+        }}
+      />
     </div>
   );
 };

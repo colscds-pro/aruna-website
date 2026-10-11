@@ -18,6 +18,7 @@ import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 import { Navbar } from '../Navbar';
 import { Footer } from '../Footer';
 import { ConsultationModal } from '../ConsultationModal';
+import { updatePageSeo } from '../../utils/seo';
 
 interface ArticleDetailPageProps {
   slug: string;
@@ -84,46 +85,15 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
         }
 
         // Dynamic Document Meta and SEO
-        const pageTitle = `${fetchedArticle.title} | ARUNA Insights`;
-        document.title = pageTitle;
-
-        // Meta description
-        let metaDesc = document.querySelector('meta[name="description"]');
-        if (!metaDesc) {
-          metaDesc = document.createElement('meta');
-          metaDesc.setAttribute('name', 'description');
-          document.head.appendChild(metaDesc);
-        }
-        metaDesc.setAttribute('content', fetchedArticle.seoDescription || fetchedArticle.excerpt);
-
-        // Canonical link
-        let canonical = document.querySelector('link[rel="canonical"]');
-        if (!canonical) {
-          canonical = document.createElement('link');
-          canonical.setAttribute('rel', 'canonical');
-          document.head.appendChild(canonical);
-        }
-        const canonicalUrl = `${window.location.origin}/insights/${fetchedArticle.slug}`;
-        canonical.setAttribute('href', canonicalUrl);
-
-        // Open Graph Meta
-        const setOgTag = (property: string, content: string) => {
-          let ogTag = document.querySelector(`meta[property="${property}"]`);
-          if (!ogTag) {
-            ogTag = document.createElement('meta');
-            ogTag.setAttribute('property', property);
-            document.head.appendChild(ogTag);
-          }
-          ogTag.setAttribute('content', content);
-        };
-
-        setOgTag('og:title', pageTitle);
-        setOgTag('og:description', fetchedArticle.seoDescription || fetchedArticle.excerpt);
-        setOgTag('og:url', canonicalUrl);
-        setOgTag('og:type', 'article');
-        if (fetchedArticle.coverImage) {
-          setOgTag('og:image', fetchedArticle.coverImage);
-        }
+        updatePageSeo({
+          title: `${fetchedArticle.title} | ARUNA Insights`,
+          description: fetchedArticle.seoDescription || fetchedArticle.excerpt,
+          url: `/insights/${fetchedArticle.slug}`,
+          image: fetchedArticle.coverImage || '/og-aruna-default.jpg',
+          type: 'article',
+          authorName: fetchedArticle.author?.name || 'Muhammad Nurcholish',
+          publishedTime: fetchedArticle.publishedAt,
+        });
       } catch (err) {
         console.error('Failed to load article detail:', err);
         if (isMounted) {
@@ -456,6 +426,10 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
                     <img
                       src={article.coverImage}
                       alt={article.title}
+                      loading="eager"
+                      fetchPriority="high"
+                      width={1200}
+                      height={675}
                       className="w-full h-full object-cover object-center"
                       referrerPolicy="no-referrer"
                       onError={(e) => {

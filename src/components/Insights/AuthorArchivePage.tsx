@@ -16,6 +16,7 @@ import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 import { Navbar } from '../Navbar';
 import { Footer } from '../Footer';
 import { ConsultationModal } from '../ConsultationModal';
+import { updatePageSeo } from '../../utils/seo';
 
 interface AuthorArchivePageProps {
   slug: string;
@@ -76,28 +77,14 @@ export const AuthorArchivePage: React.FC<AuthorArchivePageProps> = ({
           setIsLoading(false);
 
           // Update Document Title and SEO
-          const pageTitle = `${sanitizedAuthor.name} — Penulis & Kontributor | ARUNA Insights`;
-          document.title = pageTitle;
-
-          let metaDesc = document.querySelector('meta[name="description"]');
-          if (!metaDesc) {
-            metaDesc = document.createElement('meta');
-            metaDesc.setAttribute('name', 'description');
-            document.head.appendChild(metaDesc);
-          }
-          metaDesc.setAttribute(
-            'content',
-            `Kumpulan artikel dan publikasi analisis bisnis oleh ${sanitizedAuthor.name} di ARUNA Insights.`
-          );
-
-          // Canonical link
-          let canonical = document.querySelector('link[rel="canonical"]');
-          if (!canonical) {
-            canonical = document.createElement('link');
-            canonical.setAttribute('rel', 'canonical');
-            document.head.appendChild(canonical);
-          }
-          canonical.setAttribute('href', `${window.location.origin}/authors/${slug}`);
+          updatePageSeo({
+            title: `${sanitizedAuthor.name} — Penulis & Kontributor | ARUNA Insights`,
+            description: `Kumpulan artikel dan publikasi analisis bisnis oleh ${sanitizedAuthor.name} di ARUNA Insights.`,
+            url: `/authors/${slug}`,
+            image: sanitizedAuthor.photoUrl || '/og-author-nurcholish.jpg',
+            type: 'website',
+            authorName: sanitizedAuthor.name,
+          });
         }
       } catch (err) {
         console.error('Error loading author archive:', err);

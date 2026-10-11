@@ -15,6 +15,7 @@ import { BUNDLED_IMAGES, getBundledFallback } from '../../assets/bundledImages';
 import { Navbar } from '../Navbar';
 import { Footer } from '../Footer';
 import { ConsultationModal } from '../ConsultationModal';
+import { updatePageSeo } from '../../utils/seo';
 
 interface InsightsListingPageProps {
   lang: Language;
@@ -57,26 +58,13 @@ export const InsightsListingPage: React.FC<InsightsListingPageProps> = ({
         setIsLoading(false);
 
         // Document Title & SEO
-        document.title = 'Insights & Analisis Operasional Bisnis | ARUNA';
-
-        let metaDesc = document.querySelector('meta[name="description"]');
-        if (!metaDesc) {
-          metaDesc = document.createElement('meta');
-          metaDesc.setAttribute('name', 'description');
-          document.head.appendChild(metaDesc);
-        }
-        metaDesc.setAttribute(
-          'content',
-          'Kajian mendalam dan analisis operasional bisnis, tata kelola cabang, mitigasi kebocoran persediaan, dan implementasi ERP oleh ARUNA.'
-        );
-
-        let canonical = document.querySelector('link[rel="canonical"]');
-        if (!canonical) {
-          canonical = document.createElement('link');
-          canonical.setAttribute('rel', 'canonical');
-          document.head.appendChild(canonical);
-        }
-        canonical.setAttribute('href', `${window.location.origin}/insights`);
+        updatePageSeo({
+          title: 'Insights & Telaah Operasional Bisnis | ARUNA',
+          description: 'Kajian mendalam mengenai arsitektur proses, kontrol margin, mitigasi kebocoran persediaan, dan kesiapan sistem sebelum ekspansi cabang ritel dan F&B.',
+          url: '/insights',
+          image: '/og-aruna-default.jpg',
+          type: 'website',
+        });
       } catch (err) {
         console.error('Error loading insights listing data:', err);
         if (isMounted) {

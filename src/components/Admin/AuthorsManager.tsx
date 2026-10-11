@@ -4,6 +4,7 @@ import { Author } from '../../types';
 import { AuthorsService } from '../../services/supabase/authorsService';
 import { MediaService } from '../../services/supabase/mediaService';
 import { BUNDLED_IMAGES } from '../../assets/bundledImages';
+import { ImageUploadOptimizerModal } from './ImageUploadOptimizerModal';
 
 export const AuthorsManager: React.FC = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -12,6 +13,10 @@ export const AuthorsManager: React.FC = () => {
   const [isNew, setIsNew] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Optimizer modal
+  const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
+  const [avatarFileToOptimize, setAvatarFileToOptimize] = useState<File | null>(null);
 
   const loadAuthors = async () => {
     setIsLoading(true);
@@ -68,28 +73,13 @@ export const AuthorsManager: React.FC = () => {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingAuthor) return;
 
-    setIsUploading(true);
-    try {
-      const { publicUrl, error } = await MediaService.uploadMedia(file, 'authors', {
-        name: `Avatar: ${editingAuthor.name || file.name}`,
-        section: 'about',
-      });
-      if (error) {
-        setNotification({ type: 'error', message: error.message });
-      } else if (publicUrl) {
-        setEditingAuthor({
-          ...editingAuthor,
-          photoUrl: publicUrl,
-          avatarUrl: publicUrl,
-        });
-      }
-    } finally {
-      setIsUploading(false);
-    }
+    setAvatarFileToOptimize(file);
+    setIsOptimizerOpen(true);
+    e.target.value = '';
   };
 
   return (
@@ -261,6 +251,35 @@ export const AuthorsManager: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Automatic Image Upload Optimizer Modal for Author Avatar */}
+      <ImageUploadOptimizerModal
+        isOpen={isOptimizerOpen}
+        onClose={() => {
+          setIsOptimizerOpen(false);
+          setAvatarFileToOptimize(null);
+        }}
+        initialFile={avatarFileToOptimize}
+        defaultPreset="avatar"
+        folder="authors"
+        section="about"
+        metadata={{
+          name: `Avatar: ${editingAuthor?.name || 'Penulis'}`,
+        }}
+        onSuccess={(url) => {
+          if (editingAuthor) {
+            setEditingAuthor({
+              ...editingAuthor,
+              photoUrl: url,
+              avatarUrl: url,
+            });
+          }
+          setNotification({
+            type: 'success',
+            message: 'Foto profil penulis berhasil dioptimalkan dan diunggah.',
+          });
+        }}
+      />
     </div>
   );
 };
